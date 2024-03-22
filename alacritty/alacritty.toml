@@ -1,0 +1,59 @@
+import = [
+  "/Users/braidon/.config/alacritty/themes/themes/catppuccin_mocha.toml",
+]
+
+[env]
+TERM = "xterm-256color"
+
+[font]
+size = 15
+
+[font.bold]
+family = "Iosevka Nerd Font"
+style = "Medium"
+
+[font.italic]
+family = "Iosevka Nerd Font"
+style = "Regular"
+
+[font.normal]
+family = "Iosevka Nerd Font"
+style = "Regular"
+
+[cursor]
+thickness = 0.3
+
+[cursor.style]
+shape = "Beam"
+
+[font.offset]
+x = 0
+# y = 4
+
+[font.glyph_offset]
+# y = 2
+
+
+[[keyboard.bindings]]
+chars = "\u001BF"
+key = "Right"
+mods = "Alt"
+
+[[keyboard.bindings]]
+chars = "\u001BB"
+key = "Left"
+mods = "Alt"
+
+[[keyboard.bindings]]
+action = "ToggleFullscreen"
+key = "F12"
+
+[window]
+# decorations = "buttonless"
+# family = "Iosevka Nerd Font"
+dynamic_padding = true
+opacity = 1
+
+[window.padding]
+x = 3
+y = 3
