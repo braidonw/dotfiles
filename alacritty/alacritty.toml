@@ -1,6 +1,4 @@
-import = [
-  "/Users/braidon/.config/alacritty/themes/themes/catppuccin_mocha.toml",
-]
+import = ["/Users/braidon/.config/alacritty/bamboo.toml"]
 
 [env]
 TERM = "xterm-256color"
