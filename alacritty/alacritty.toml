@@ -1,22 +1,11 @@
-import = ["/Users/braidon/.config/alacritty/themes/themes/kanagawa_dragon.toml"]
+import = ["/Users/braidon/.config/alacritty/jdh.toml"]
 
 [env]
 TERM = "xterm-256color"
 
 [font]
-size = 14
-
-[font.bold]
-family = "Hack Nerd Font"
-style = "Medium"
-
-[font.italic]
-family = "Hack Nerd Font"
-style = "Regular"
-
-[font.normal]
-family = "Hack Nerd Font"
-style = "Regular"
+size = 13
+family = "IosevkaTerm Nerd Font"
 
 [cursor]
 thickness = 0.3
@@ -48,7 +37,7 @@ key = "F12"
 
 [window]
 # decorations = "buttonless"
-# family = "Hack Nerd Font"
+# family = "Iosevka Nerd Font"
 dynamic_padding = true
 opacity = 1
 
