@@ -4,13 +4,13 @@ local wezterm = require("wezterm")
 -- This will hold the configuration.
 local c = wezterm.config_builder()
 
-c.font = wezterm.font("Iosevka", { stretch = "Expanded", weight = "Regular" })
+-- c.font = wezterm.font("Iosevka", { stretch = "Expanded", weight = "Regular" })
 -- c.font = wezterm.font("Berkeley Mono")
 -- c.font = wezterm.font("JetBrainsMono Nerd Font")
--- c.font = wezterm.font("Fira Code")
+c.font = wezterm.font("Fira Code")
 -- c.font = wezterm.font("Iosevka Term", { weight = "Regular" })
 c.font_size = 14
-c.line_height = 1.1
+c.line_height = 1.2
 -- c.color_scheme_dirs = { "~/.config/wezterm/colors" }
 -- c.color_scheme = "Bamboo Light"
 -- c.color_scheme = "Bamboo"
