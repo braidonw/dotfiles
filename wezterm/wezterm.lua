@@ -4,20 +4,21 @@ local wezterm = require("wezterm")
 -- This will hold the configuration.
 local c = wezterm.config_builder()
 
--- c.font = wezterm.font("Iosevka Term", { stretch = "Expanded", weight = "Regular" })
-c.font = wezterm.font("Berkeley Mono")
+c.font = wezterm.font("Iosevka", { stretch = "Expanded", weight = "Regular" })
+-- c.font = wezterm.font("Berkeley Mono")
 -- c.font = wezterm.font("JetBrainsMono Nerd Font")
--- c.font = wezterm.font("Fira Code", { weight = "Medium" })
+-- c.font = wezterm.font("Fira Code")
 -- c.font = wezterm.font("Iosevka Term", { weight = "Regular" })
-c.font_size = 13
-c.line_height = 1.2
+c.font_size = 14
+c.line_height = 1.1
 -- c.color_scheme_dirs = { "~/.config/wezterm/colors" }
 -- c.color_scheme = "Bamboo Light"
 -- c.color_scheme = "Bamboo"
 -- c.color_scheme = "Catppuccin Mocha"
 -- c.color_scheme = "Oxocarbon Dark (Gogh)"
 -- c.color_scheme = "Gruvbox dark, hard (base16)"
-c.color_scheme = "GruvboxDarkHard"
+-- c.color_scheme = "GruvboxDarkHard"
+c.color_scheme = "Solarized Dark Higher Contrast (Gogh)"
 
 local custom = wezterm.color.get_builtin_schemes()["Catppuccin Mocha"]
 custom.background = "#000000"
@@ -32,8 +33,8 @@ c.color_schemes = {
 c.tab_bar_at_bottom = true
 c.use_fancy_tab_bar = false
 
-c.window_decorations = "RESIZE|INTEGRATED_BUTTONS"
-c.window_padding = { left = 0, right = 0, top = 50, bottom = 0 }
+-- c.window_decorations = "RESIZE|INTEGRATED_BUTTONS"
+c.window_padding = { left = 0, right = 0, top = 10, bottom = 0 }
 c.adjust_window_size_when_changing_font_size = false
 c.audible_bell = "Disabled"
 c.default_cursor_style = "BlinkingBar"
