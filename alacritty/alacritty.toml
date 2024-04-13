@@ -4,8 +4,12 @@ import = ["/Users/braidon/.config/alacritty/jdh.toml"]
 TERM = "xterm-256color"
 
 [font]
-size = 13
-family = "IosevkaTerm Nerd Font"
+size = 14
+
+normal.family = "BerkeleyMono Nerd Font Mono"
+bold.family = "BerkeleyMono Nerd Font Mono"
+italic.family = "BerkeleyMono Nerd Font Mono"
+bold_italic.family = "BerkeleyMono Nerd Font Mono"
 
 [cursor]
 thickness = 0.3
