@@ -4,21 +4,23 @@ local wezterm = require("wezterm")
 -- This will hold the configuration.
 local c = wezterm.config_builder()
 
--- c.font = wezterm.font("Iosevka", { stretch = "Expanded", weight = "Regular" })
-c.font = wezterm.font("Berkeley Mono")
+c.front_end = "WebGpu"
+-- c.font = wezterm.font("Berkeley Mono")
+-- c.font = wezterm.font("MesloLGM Nerd Font")
+c.font = wezterm.font("Iosevka", { stretch = "Expanded", weight = "Regular" })
 -- c.font = wezterm.font("JetBrainsMono Nerd Font")
 -- c.font = wezterm.font("Fira Code")
 -- c.font = wezterm.font("Iosevka Term", { weight = "Regular" })
 c.font_size = 14
-c.line_height = 1.4
+c.line_height = 1.2
 -- c.color_scheme_dirs = { "~/.config/wezterm/colors" }
 -- c.color_scheme = "Bamboo Light"
 -- c.color_scheme = "Kanagawa (Gogh)"
 -- c.color_scheme = "Bamboo"
 -- c.color_scheme = "Oxocarbon Dark (Gogh)"
 -- c.color_scheme = "Gruvbox dark, hard (base16)"
-c.color_scheme = "GruvboxDarkHard"
--- c.color_scheme = "Oxocarbon Dark (Gogh)"
+-- c.color_scheme = "GruvboxDarkHard"
+c.color_scheme = "Catppuccin Mocha"
 -- -- c.color_scheme = "Solarized Dark Higher Contrast (Gogh)"
 -- c.color_scheme = "Tokyo Night"
 
