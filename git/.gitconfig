@@ -1,0 +1,5 @@
+[commit]
+	gpgsign = true
+[user]
+	signingkey = 61B6559DBC38D02A
+	email = braidon@superapi.com.au

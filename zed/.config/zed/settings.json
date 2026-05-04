@@ -1,0 +1,246 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "diff_view_style": "split",
+  "git_panel": {
+    "tree_view": true,
+  },
+  "git": {
+    "enable_diff": true,
+    "enable_status": true,
+    "disable_git": false,
+    "blame": {
+      "show_avatar": true,
+    },
+  },
+  "profiles": {
+    "catppuccin": {
+      "settings": {
+        "ui_font_family": "Maple Mono NF",
+        "agent_buffer_font_size": 14,
+        "agent_ui_font_size": 14.0,
+        "icon_theme": {
+          "mode": "dark",
+          "light": "Catppuccin Mocha",
+          "dark": "Catppuccin Mocha",
+        },
+        "buffer_font_family": "Maple Mono NF",
+        "ui_font_size": 14,
+        "buffer_font_size": 14,
+        "theme": {
+          "mode": "dark",
+          "light": "Catppuccin Latte",
+          "dark": "Catppuccin Mocha",
+        },
+        "terminal": {
+          "font_family": "Maple Mono NF",
+          "keep_selection_on_copy": false,
+        },
+      },
+    },
+    "melange": {
+      "settings": {
+        "ui_font_family": "Maple Mono NF",
+        "agent_buffer_font_size": 14.0,
+        "agent_ui_font_size": 16.0,
+        "colorize_brackets": false,
+        "indent_guides": {
+          "coloring": "fixed",
+          "line_width": 0,
+          "active_line_width": 1,
+        },
+        "theme_overrides": {},
+        "icon_theme": {
+          "mode": "dark",
+          "light": "Material Icon Theme",
+          "dark": "Material Icon Theme",
+        },
+        "buffer_font_family": "Maple Mono NF",
+        "ui_font_size": 14.0,
+        "buffer_font_size": 14.0,
+        "theme": {
+          "mode": "dark",
+          "light": "Melange Light",
+          "dark": "Melange Dark",
+        },
+        "terminal": {
+          "font_family": "Maple Mono NF",
+          "keep_selection_on_copy": false,
+        },
+      },
+    },
+  },
+  "semantic_tokens": "combined",
+  "agent_servers": {
+    "claude-acp": {
+      "type": "registry",
+    },
+  },
+  "wrap_guides": [120],
+  "ui_font_family": "Maple Mono NF",
+  "agent_buffer_font_size": 14,
+  "agent_ui_font_size": 14.0,
+  "cursor_blink": false,
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Catppuccin Mocha",
+    "dark": "Colored Zed Icons Theme Dark",
+  },
+  "base_keymap": "VSCode",
+  "buffer_font_family": "Maple Mono NF",
+  "vim_mode": true,
+  "ui_font_size": 14,
+  "buffer_font_size": 14,
+  "theme": {
+    "mode": "dark",
+    "light": "Catppuccin Latte",
+    "dark": "Catppuccin Mocha",
+  },
+  "terminal": {
+    "font_family": "Maple Mono NF",
+    "keep_selection_on_copy": false,
+  },
+
+  "vim": {
+    "use_system_clipboard": "always",
+    "use_smartcase_find": true,
+  },
+  "show_whitespaces": "trailing",
+  "file_types": {
+    "Dockerfile": ["Dockerfile", "Dockerfile.*"],
+  },
+  "tab_bar": {
+    "show": true,
+  },
+  "active_pane_modifiers": {
+    "inactive_opacity": 0.9,
+    "border_size": 0.3,
+  },
+  "toolbar": {
+    "breadcrumbs": true,
+    "quick_actions": false,
+  },
+
+  "scrollbar": {
+    "show": "auto",
+    "axes": {
+      "horizontal": false,
+    },
+  },
+  "gutter": {
+    "folds": false,
+  },
+  "project_panel": {
+    "button": true,
+  },
+  "colorize_brackets": false,
+  "indent_guides": {
+    "enabled": true,
+    "line_width": 1,
+    "active_line_width": 2,
+    "coloring": "fixed",
+    "background_coloring": "disabled",
+  },
+  "preview_tabs": {
+    "enabled": false,
+  },
+  "which_key": {
+    "enabled": true,
+    "delay_ms": 300,
+  },
+  "theme_overrides": {
+    "Melange Dark": {
+      "accents": [
+        "#C8C0B8",
+        "#A3A9CE",
+        "#89B3B6",
+        "#85B695",
+        "#EBC06D",
+        "#E49B5D",
+        "#CE9BCB",
+        "#D47766",
+      ],
+    },
+    "Kanagawa Wave": {
+      "accents": [
+        "#957FB8",
+        "#DCD7BA",
+        "#6A9589",
+        "#9CABCA",
+        "#C0A36E",
+        "#7E9CD8",
+        "#98BB6C",
+        "#FF9E3B",
+      ],
+    },
+    "Kanagawa Dragon": {
+      "accents": [
+        "#a292a3",
+        "#c5c9c5",
+        "#8ea4a2",
+        "#8992a7",
+        "#c4b28a",
+        "#8ba4b0",
+        "#87a987",
+        "#e46876",
+      ],
+    },
+    "Kanagawa Lotus": {
+      "accents": [
+        "#766b90",
+        "#545464",
+        "#5e857a",
+        "#8a8980",
+        "#5d57a3",
+        "#4d699b",
+        "#6e915f",
+        "#c84053",
+      ],
+    },
+    "Catppuccin Mocha": {
+      "syntax": {
+        "module": {
+          "font_style": "normal",
+        },
+      },
+    },
+    "Catppuccin Latte": {
+      "syntax": {
+        "module": {
+          "font_style": "normal",
+        },
+      },
+    },
+  },
+  "tabs": {
+    "file_icons": true,
+    "git_status": true,
+    "show_close_button": "hover",
+    "show_diagnostics": "errors",
+    "activate_on_close": "history",
+  },
+  "max_tabs": 8,
+  "diagnostics": {
+    "button": true,
+    "include_warnings": true,
+  },
+  "preferred_line_length": 100,
+  "soft_wrap": "editor_width",
+  "languages": {
+    "Elixir": {
+      "language_servers": ["dexter", "!elixir-ls"],
+    },
+    "HEEx": {
+      "language_servers": ["dexter", "!elixir-ls"],
+    },
+    "EEx": {
+      "language_servers": ["dexter", "!elixir-ls"],
+    },
+  },
+}

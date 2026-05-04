@@ -1,12 +1,13 @@
-configstore/*
-gcloud/*
-github-copilot/*
-gtk-2.0/*
-linearmouse/*
-nvim.bak/*
-stripe/*
-zed/*
-zellij/*
-raycast/*
-op/*
+# Secrets
+gh/.config/gh/hosts.yml
 
+# Auto-generated / machine-local state
+fish/.config/fish/fish_variables
+claude/.claude/settings.local.json
+
+# Zed local state
+zed/.config/zed/settings_backup.json
+zed/.config/zed/prompts/prompts-library-db.0.mdb/
+
+# macOS
+.DS_Store
