@@ -1,9 +1,7 @@
-font-family = Berkeley Mono
+font-family = Berkeley Mono Condensed
 font-size = 14
 minimum-contrast = 1.4
 
-# font-family = Iosevka Term
-
 # theme = Melange Dark
-theme = Catppuccin Mocha
+# theme = Catppuccin Mocha
 # theme = Kanagawa Wave
