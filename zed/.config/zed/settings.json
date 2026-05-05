@@ -19,63 +19,6 @@
       "show_avatar": true,
     },
   },
-  "profiles": {
-    "catppuccin": {
-      "settings": {
-        "ui_font_family": "Maple Mono NF",
-        "agent_buffer_font_size": 14,
-        "agent_ui_font_size": 14.0,
-        "icon_theme": {
-          "mode": "dark",
-          "light": "Catppuccin Mocha",
-          "dark": "Catppuccin Mocha",
-        },
-        "buffer_font_family": "Maple Mono NF",
-        "ui_font_size": 14,
-        "buffer_font_size": 14,
-        "theme": {
-          "mode": "dark",
-          "light": "Catppuccin Latte",
-          "dark": "Catppuccin Mocha",
-        },
-        "terminal": {
-          "font_family": "Maple Mono NF",
-          "keep_selection_on_copy": false,
-        },
-      },
-    },
-    "melange": {
-      "settings": {
-        "ui_font_family": "Maple Mono NF",
-        "agent_buffer_font_size": 14.0,
-        "agent_ui_font_size": 16.0,
-        "colorize_brackets": false,
-        "indent_guides": {
-          "coloring": "fixed",
-          "line_width": 0,
-          "active_line_width": 1,
-        },
-        "theme_overrides": {},
-        "icon_theme": {
-          "mode": "dark",
-          "light": "Material Icon Theme",
-          "dark": "Material Icon Theme",
-        },
-        "buffer_font_family": "Maple Mono NF",
-        "ui_font_size": 14.0,
-        "buffer_font_size": 14.0,
-        "theme": {
-          "mode": "dark",
-          "light": "Melange Light",
-          "dark": "Melange Dark",
-        },
-        "terminal": {
-          "font_family": "Maple Mono NF",
-          "keep_selection_on_copy": false,
-        },
-      },
-    },
-  },
   "semantic_tokens": "combined",
   "agent_servers": {
     "claude-acp": {
@@ -83,27 +26,27 @@
     },
   },
   "wrap_guides": [120],
-  "ui_font_family": "Maple Mono NF",
-  "agent_buffer_font_size": 14,
-  "agent_ui_font_size": 14.0,
+  "ui_font_family": "Iosevka",
+  "agent_buffer_font_size": 15.0,
+  "agent_ui_font_size": 15.0,
   "cursor_blink": false,
   "icon_theme": {
     "mode": "dark",
     "light": "Catppuccin Mocha",
-    "dark": "Colored Zed Icons Theme Dark",
+    "dark": "Catppuccin Mocha",
   },
   "base_keymap": "VSCode",
-  "buffer_font_family": "Maple Mono NF",
+  "buffer_font_family": "Iosevka",
   "vim_mode": true,
-  "ui_font_size": 14,
-  "buffer_font_size": 14,
+  "ui_font_size": 15.0,
+  "buffer_font_size": 15.0,
   "theme": {
     "mode": "dark",
     "light": "Catppuccin Latte",
     "dark": "Catppuccin Mocha",
   },
   "terminal": {
-    "font_family": "Maple Mono NF",
+    "font_family": "Iosevka",
     "keep_selection_on_copy": false,
   },
 
@@ -140,11 +83,12 @@
     "button": true,
   },
   "colorize_brackets": false,
+  "buffer_line_height": "comfortable",
   "indent_guides": {
     "enabled": true,
-    "line_width": 1,
-    "active_line_width": 2,
-    "coloring": "fixed",
+    "line_width": 2,
+    "active_line_width": 4,
+    "coloring": "indent_aware",
     "background_coloring": "disabled",
   },
   "preview_tabs": {
