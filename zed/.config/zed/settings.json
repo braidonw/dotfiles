@@ -27,7 +27,7 @@
     },
   },
   "wrap_guides": [120],
-  "ui_font_family": "Iosevka",
+  "ui_font_family": "Berkeley Mono Condensed",
   "agent_buffer_font_size": 15.0,
   "agent_ui_font_size": 15.0,
   "cursor_blink": false,
@@ -37,7 +37,7 @@
     "dark": "Colored Zed Icons Theme Dark",
   },
   "base_keymap": "VSCode",
-  "buffer_font_family": "Iosevka",
+  "buffer_font_family": "Berkeley Mono Condensed",
   "vim_mode": true,
   "ui_font_size": 15.0,
   "buffer_font_size": 15.0,
@@ -47,7 +47,7 @@
     "dark": "One Dark",
   },
   "terminal": {
-    "font_family": "Iosevka",
+    "font_family": "Berkeley Mono Condensed",
     "keep_selection_on_copy": false,
   },
 
