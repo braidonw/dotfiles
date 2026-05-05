@@ -1,3 +1,4 @@
 gui:
   theme:
-    selectedLineBgColor: reverse
+    selectedLineBgColor: 
+      - reverse
