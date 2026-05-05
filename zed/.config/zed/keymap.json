@@ -14,6 +14,11 @@
       "ctrl-shift-l": "workspace::ActivatePaneRight",
       "ctrl-shift-k": "workspace::ActivatePaneUp",
       "ctrl-shift-j": "workspace::ActivatePaneDown",
+      "cmd-p": [
+        // Or `ctrl-p`
+        "task::Spawn",
+        { "task_name": "Television File Finder", "reveal_target": "center" },
+      ],
     },
   },
   {
