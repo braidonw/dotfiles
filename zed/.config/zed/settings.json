@@ -7,8 +7,12 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "title_bar": {
+    "show_user_menu": true,
+    "show_menus": false
+  },
   "cli_default_open_behavior": "new_window",
-  "diff_view_style": "split",
+  "diff_view_style": "unified",
   "git_panel": {
     "tree_view": true,
   },
@@ -20,6 +24,7 @@
       "show_avatar": true,
     },
   },
+  "current_line_highlight": "gutter",
   "semantic_tokens": "combined",
   "agent_servers": {
     "claude-acp": {
@@ -27,27 +32,41 @@
     },
   },
   "wrap_guides": [120],
-  "ui_font_family": "Berkeley Mono Condensed",
-  "agent_buffer_font_size": 15.0,
-  "agent_ui_font_size": 15.0,
+  "agent_ui_font_size": 14,
+  "ui_font_size": 14,
   "cursor_blink": false,
   "icon_theme": {
     "mode": "dark",
     "light": "Catppuccin Mocha",
     "dark": "Colored Zed Icons Theme Dark",
   },
+  "buffer_font_features": {
+    "calt": true,
+    "cv01": true,
+    "cv02": true,
+    "cv33": true,
+    "cv34": true,
+    "cv35": true,
+    "cv36": true,
+    "cv61": true,
+    "cv62": true,
+    "ss05": true,
+    "ss06": true,
+    "ss07": true,
+    "ss08": true,
+  },
   "base_keymap": "VSCode",
-  "buffer_font_family": "Berkeley Mono Condensed",
+  "buffer_font_family": "Maple Mono NF",
+  "ui_font_family": "Maple Mono NF",
   "vim_mode": true,
-  "ui_font_size": 15.0,
-  "buffer_font_size": 15.0,
+  "buffer_font_size": 14.0,
   "theme": {
     "mode": "dark",
-    "light": "Catppuccin Latte",
+    "light": "Rosé Pine Dawn",
     "dark": "One Dark",
   },
   "terminal": {
-    "font_family": "Berkeley Mono Condensed",
+    "font_family": "Maple Mono NF",
     "keep_selection_on_copy": false,
   },
 
@@ -69,27 +88,24 @@
   "toolbar": {
     "breadcrumbs": true,
     "quick_actions": false,
+    "code_actions": true,
+  },
+  "autoscroll_on_clicks": true,
+  "sticky_scroll": {
+    "enabled": true,
   },
 
-  "scrollbar": {
-    "show": "auto",
-    "axes": {
-      "horizontal": false,
-    },
-  },
   "gutter": {
     "folds": false,
   },
   "project_panel": {
     "button": true,
+    "hide_root": true,
   },
-  "colorize_brackets": false,
+  "colorize_brackets": true,
   "buffer_line_height": "comfortable",
   "indent_guides": {
-    "enabled": true,
-    "line_width": 2,
-    "active_line_width": 4,
-    "coloring": "indent_aware",
+    "coloring": "fixed",
     "background_coloring": "disabled",
   },
   "preview_tabs": {
@@ -100,6 +116,54 @@
     "delay_ms": 300,
   },
   "theme_overrides": {
+    "One Dark": {
+      // Backgrounds anchored to Ghostty's #21252A and shifted in OkLab so
+      // each surface preserves its original One Dark contrast against the
+      // editor base (#282c33 -> #21252a). Foreground tokens (borders, text,
+      // icons, line numbers) are shifted by the same dL (-0.030) as the
+      // editor base so each preserves its original contrast against it.
+      "background": "#282d35ff",
+      "border": "#3e434fff",
+      "border.disabled": "#393f4cff",
+      "border.selected": "#2c313aff",
+      "border.variant": "#2e343eff",
+      "editor.active_line.background": "#282d35bf",
+      "editor.active_line_number": "#c6cad0ff",
+      "editor.background": "#21252aff",
+      "editor.gutter.background": "#21252aff",
+      "editor.highlighted_line.background": "#282d35ff",
+      "editor.line_number": "#465257ff",
+      "editor.subheader.background": "#282d35ff",
+      "element.active": "#3d424cff",
+      "element.background": "#272d35ff",
+      "element.hover": "#2f353dff",
+      "element.selected": "#3d424cff",
+      "elevated_surface.background": "#282d35ff",
+      "ghost_element.active": "#3d424cff",
+      "ghost_element.hover": "#2f353dff",
+      "ghost_element.selected": "#3d424cff",
+      "icon": "#d2d6dbff",
+      "icon.disabled": "#7e818fff",
+      "icon.muted": "#a0a6b3ff",
+      "panel.background": "#282d35ff",
+      "scrollbar.thumb.background": "#bec2ca4c",
+      "scrollbar.thumb.border": "#2e343eff",
+      "scrollbar.thumb.hover_background": "#2f353dff",
+      "scrollbar.track.border": "#272b34ff",
+      "status_bar.background": "#2c313aff",
+      "surface.background": "#282d35ff",
+      "tab.active_background": "#21252aff",
+      "tab.inactive_background": "#282d35ff",
+      "tab_bar.background": "#282d35ff",
+      "terminal.background": "#21252aff",
+      "text": "#d2d6dbff",
+      "text.disabled": "#7e818fff",
+      "text.muted": "#a0a6b3ff",
+      "text.placeholder": "#7e818fff",
+      "title_bar.background": "#2c313aff",
+      "title_bar.inactive_background": "#272d35ff",
+      "toolbar.background": "#21252aff",
+    },
     "Melange Dark": {
       "accents": [
         "#C8C0B8",
@@ -161,6 +225,11 @@
           "font_style": "normal",
         },
       },
+    },
+    "Vesper": {
+      // Active tab lifted from #161616 to Vesper's "selected element" tone so
+      // the focused tab stands out clearly against the #101010 inactive tabs.
+      "tab.active_background": "#232323",
     },
   },
   "tabs": {

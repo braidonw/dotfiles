@@ -1,5 +1,7 @@
 {
-  "model": "opus[1m]",
+  "permissions": {
+    "defaultMode": "auto"
+  },
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
@@ -12,14 +14,26 @@
     "skill-creator@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
-    "linear@claude-plugins-official": true
+    "linear@claude-plugins-official": true,
+    "brooks-lint@brooks-lint-marketplace": true
+  },
+  "extraKnownMarketplaces": {
+    "brooks-lint-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "hyhmrright/brooks-lint"
+      }
+    }
   },
   "effortLevel": "high",
-  "theme": "dark-ansi",
+  "tui": "fullscreen",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "theme": "dark-daltonized",
   "remoteControlAtStartup": false,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "permissions": {
-    "defaultMode": "auto"
-  }
+  "voiceEnabled": true
 }
