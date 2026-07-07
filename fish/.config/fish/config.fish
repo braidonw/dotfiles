@@ -39,6 +39,8 @@ alias ll "eza --color=always -lh"
 alias lg lazygit
 alias ld lazydocker
 alias cc claude
+alias ccu "claude --settings ~/.claude/settings-opus-ultra.json"
+alias ccf "claude --settings ~/.claude/settings-fable-high.json"
 
 # Added by OrbStack: command-line tools and integration
 # This won't be added again if you remove it.

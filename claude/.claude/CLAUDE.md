@@ -7,9 +7,23 @@ Tests will need to be run using the `just bash-run` command
 
 **No em dashes — plain ASCII in code**: Never use em/en dashes or other non-ASCII typography (curly quotes, ellipsis characters) in code you write: strings, comments, moduledocs, docstrings, log messages. This matters most for strings exposed to external consumers (API responses, webhook payloads, partner-facing copy), which must be plain ASCII. Rephrase with a colon, hyphen, parentheses, or a new sentence instead. (Prose in chat/markdown replies is fine.)
 
-**Avoid nested `case` (and other nested conditionals)**: Don't stack one `case` inside another to handle a chain of operations. The inner case obscures the top-level control flow and forces readers to track multiple levels of indentation. Extract each nesting level into its own small helper function — function names then describe what each step does, and each function has one job. Function-head pattern matching is the natural way to fan out from there. Extracted helpers should do something meaningful (make a call, do real work); don't extract a helper whose only job is to map one value to another (see next rule).
+**Nesting conditionals: two levels is fine, three is not**: One `case` inside another (or a `case` inside a `with`/`if`) is acceptable when it keeps a short chain of related steps readable in one place — don't extract a helper just to eliminate a second level if the extraction would scatter the flow across functions for no gain in clarity. Go beyond two levels almost never — only when every alternative is genuinely worse. At three-plus levels, extract the inner levels into small helper functions so function names describe what each step does; function-head pattern matching is the natural way to fan out from there. Extracted helpers should do something meaningful (make a call, do real work); don't extract a helper whose only job is to map one value to another (see next rule).
 ```elixir
-# Preferred
+# Fine — two levels, short and readable in one place
+defp run(employee_id) do
+  case Stapling.build_request(employee_id) do
+    {:ok, request} ->
+      case Stapling.deliver_request(request) do
+        {:ok, response} -> handle_response(employee_id, request, response)
+        {:error, :no_active_connection} -> {:cancel, :no_active_ato_connection}
+      end
+
+    {:error, :not_found} ->
+      {:cancel, :employee_not_found}
+  end
+end
+
+# When a third step appears, extract rather than nest a third level
 defp run(employee_id) do
   case Stapling.build_request(employee_id) do
     {:ok, request} -> deliver_and_handle(employee_id, request)
@@ -23,25 +37,11 @@ defp deliver_and_handle(employee_id, request) do
     {:error, :no_active_connection} -> {:cancel, :no_active_ato_connection}
   end
 end
-
-# Not preferred — nested case
-defp run(employee_id) do
-  case Stapling.build_request(employee_id) do
-    {:ok, request} ->
-      case Stapling.deliver_request(request) do
-        {:ok, response} -> handle_response(employee_id, request, response)
-        {:error, :no_active_connection} -> {:cancel, :no_active_ato_connection}
-      end
-
-    {:error, :not_found} ->
-      {:cancel, :employee_not_found}
-  end
-end
 ```
 
 **Inline error-to-outcome mappings in the `case`**: Don't extract a helper function whose only job is to rename one tagged tuple into another (e.g. `defp build_error_to_outcome(:not_found), do: {:cancel, :employee_not_found}`). Put the clause directly in the calling `case` — the mapping is right there at the site, and a stand-alone helper that just renames a value doesn't earn its keep. A small amount of duplication across two call sites is preferable to chasing a one-line indirection. Helper functions are for steps that do real work (a `Repo` call, a transform, branching), not for renaming.
 
-**Avoid `with`/`else` for error translation**: When chaining multiple `{:ok, _} | {:error, _}` calls, prefer explicit `case` statements (often delegating to small per-step helper functions) with the error-to-outcome clauses inlined. An `else` clause on a `with` block conflates errors from different sources — readers can't tell which step produced which error, and adding a new failure mode to one step means inspecting every `else` clause to see whether it's already handled. A `with` block with no `else` is fine when the unmatched value is returned verbatim.
+**Avoid `with`/`else` for error translation**: When chaining multiple `{:ok, _} | {:error, _}` calls, prefer explicit `case` statements (a two-level nested `case`, or per-step helper functions for longer chains) with the error-to-outcome clauses inlined. An `else` clause on a `with` block conflates errors from different sources — readers can't tell which step produced which error, and adding a new failure mode to one step means inspecting every `else` clause to see whether it's already handled. A `with` block with no `else` is fine when the unmatched value is returned verbatim.
 ```elixir
 # Preferred — case with inline error clauses
 defp run(employee_id) do
@@ -74,11 +74,20 @@ end
 
 **Don't extract single-caller wrappers**: A private function with one caller whose only job is to pin a return value or host a `rescue` isn't earning its keep — use a function-level `rescue` and an explicit trailing return in the public function instead. Extraction is for branching steps that do real work.
 
+**No silent failures**: e.g. don't do `plan = Map.get(plan_map, frequency, "starter")` — instead fail loudly with an 'unknown frequency' error.
+
 **Don't handle errors that can't happen — use the raising variant and let it crash**: When an operation only returns `{:error, _}` for malformed or programmer-error input that a well-formed call site never produces, don't write a `case`/log/`log_and_notify`/swallow branch for that error. Prefer the bang variant (`Oban.insert!`, `Repo.insert!`, `Jason.decode!` on data you built) and let it raise if the "impossible" ever occurs. A crash is a loud, located, debuggable signal; an elaborate branch for an unreachable error is dead code that obscures the happy path and misleads readers into thinking the failure is expected and handled. This is the flip side of "no silent failures": both say surface the unexpected loudly rather than papering over it — `Oban.insert` followed by `{:error, _} -> log(...); :ok` is a *silent* failure dressed up as handling. Distinguish genuine runtime errors (network down, not-found, validation of *user* input, a race) — those you match and handle — from errors that only fire on a bug at the call site, which you let raise. If a raising call sits inside a caller's transaction, raising rolls the work back atomically, which is usually what you want. Watch for: a `case Op.insert(...)` whose `{:error, _}` arm just logs and returns `:ok`; "outcome reporter" helpers built solely to log both arms of a call that won't fail.
 
 **A function whose contract is to raise carries a `!` suffix**: If a function is designed to raise on failure rather than return `{:error, _}`, name it with a trailing `!` — `enqueue!`, `fetch_user!`, `charge!`. This mirrors the stdlib pairing (`Map.fetch`/`Map.fetch!`, `Repo.insert`/`Repo.insert!`): the bang tells every call site "this raises, so handle it upstream or let it crash." It applies even with no tuple-returning sibling — a standalone helper that wraps a raising call (`Oban.insert!`) and never returns `{:error, _}` still gets the `!`. This is about the *contract* (a function meant to raise), not about whether some code path could theoretically raise a `MatchError` or `Repo` connection error — don't bang every function, only those whose documented behaviour is to raise on the failure a caller would otherwise pattern-match.
 
-**Comments state constraints the code can't show**: Don't annotate self-explanatory constructs or narrate what the next line does. If a comment restates what an idiomatic reader already sees (e.g. that `inspect(SomeModule)` tracks a rename), delete it.
+**Comments and docs: only three kinds are allowed**. Default to writing no comment at all — most code should carry none. The only permitted forms:
+1. **Short `@moduledoc`s** — a brief overview of what the module is for and where it sits in the domain (a few sentences at most). Never enumerate the module's functions, describe its internals, list its callers, or restate implementation details — that's what the code and "find references" are for, and it rots the moment the module changes. For internal plumbing modules (workers, helpers, submodules not meant to be called from outside their domain), `@moduledoc false` is the right choice — don't write filler prose just to have a moduledoc.
+2. **`@doc` on public functions, only where needed** — when the contract isn't obvious from the name, args, and return shape (surprising behaviour, units, side effects, what `{:error, _}` values mean). A well-named `fetch_user/1` needs no `@doc`. Never `@doc` private functions.
+3. **Inline comments on genuinely tricky code** — a constraint, invariant, workaround, or non-obvious decision that the code cannot express (e.g. "Stripe requires idempotency keys stable across retries"). If the code path is straightforward, no comment.
+
+Never write a comment that restates what the code already says — no `# performs foo on the args` above `def foo`, no narrating the next line, no section banners, no annotating self-explanatory constructs. The test: if deleting the comment loses nothing but a paraphrase of the code, it should not exist. Prefer a clearer name or extracted function over a comment explaining an unclear one.
+
+**`@spec` on public functions**: Add `@spec` to public functions; don't spec private helpers. A spec often makes a `@doc` unnecessary — if the name and spec together tell the caller everything, skip the doc.
 
 **Single-use module attributes live next to their use site**: Module attributes can be declared anywhere before use, so put a single-use attribute directly above the function that uses it rather than at the top of the module. Conversely, an attribute is *required* when a compile-time-computed value (e.g. `inspect(SomeModule)`) goes into a function-head pattern match — function calls aren't allowed in patterns, so don't try to inline them there.
 
@@ -115,8 +124,6 @@ Notes:
 - `--no-deps` skips **redis** too — if you forget step 2's redis attach, membership/cache tests fail with `Redix.ConnectionError{reason: :closed}` (a red herring, not a real failure).
 - For a pure `mix compile --warnings-as-errors` (no DB/secrets needed) you can skip all of this and just bypass the entrypoint: `... run --rm --no-deps --entrypoint mix super-api compile --warnings-as-errors`.
 
-No silent failures: e.g. don't do `plan = Map.get(plan_map, frequency, "starter")` — instead fail loudly with an 'unknown frequency' error.
-
 # Project guidelines
 HTTP Requests: Use the already included and available `:req` (`Req`) library for HTTP requests
 Behaviours for API Clients: Define behaviours for API clients to allow easy mocking
@@ -132,7 +139,7 @@ Thin Controllers: Keep controllers thin, delegating business logic to contexts
 Security First: Always consider security implications (CSRF, XSS, etc.)
 
 ## General Elixir guidelines
-- Use `with` for chaining operations that return `{:ok, _}` or `{:error, _}`
+- `with` is fine for chaining `{:ok, _}` / `{:error, _}` operations when the unmatched value is returned verbatim (no `else`); otherwise prefer explicit `case` (see the `with`/`else` rule above)
 - **Never** nest multiple modules in the same file as it can cause cyclic dependencies and compilation errors
 - **Never** use map access syntax (`changeset[:field]`) on structs as they do not implement the Access behaviour by default. For regular structs, you **must** access the fields directly, such as `my_struct.field` or use higher level APIs that are available on the struct if they exist, `Ecto.Changeset.get_field/2` for changesets
 - Elixir's standard library has everything necessary for date and time manipulation. Familiarize yourself with the common `Time`, `Date`, `DateTime`, and `Calendar` interfaces by accessing their documentation as necessary. **Never** install additional dependencies unless asked or for date/time parsing (which you can use the `date_time_parser` package)
