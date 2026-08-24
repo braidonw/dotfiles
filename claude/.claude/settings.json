@@ -1,4 +1,7 @@
 {
+  "attribution": {
+    "commit": ""
+  },
   "permissions": {
     "defaultMode": "auto"
   },
@@ -25,6 +28,10 @@
         "repo": "hyhmrright/brooks-lint"
       }
     }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"$HOME/.claude/statusline.sh\""
   },
   "effortLevel": "high",
   "ultracode": false,

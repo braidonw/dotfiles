@@ -3,3 +3,13 @@
 [user]
 	signingkey = A6BD19C2A44CFE84
 	email = braidon@superapi.com.au
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[branch]
+	autoSetupMerge = simple
+[push]
+	autoSetupRemote = true

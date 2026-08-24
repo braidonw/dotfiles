@@ -1,0 +1,18 @@
+{
+  "lastChangelogVersion": "0.81.1",
+  "theme": "dark",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.6-sol",
+  "defaultThinkingLevel": "high",
+  "packages": [
+    "npm:pi-web-access"
+  ],
+  "skills": [
+    "~/.claude/skills/elixir-review",
+    "~/.claude/skills/tiger-style"
+  ],
+  "enabledModels": [
+    "kimi-coding/k3",
+    "openai-codex/gpt-5.6-sol"
+  ]
+}

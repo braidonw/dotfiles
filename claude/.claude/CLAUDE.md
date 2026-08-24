@@ -12,9 +12,35 @@ Rules of thumb:
 - Review the agent's report and diff in the main session before declaring work done; final judgement stays with Fable. If an agent reports a plan conflict, resolve it in the main session and re-delegate.
 - Independent tasks from one plan can go to multiple agents in parallel.
 
+# Planning
+
+Before doing any non-trivial work or developing a plan, when there are any areas you are unclear about (an ambiguity in the requirements, a choice between designs, a tradeoff), invoke the `grilling` skill and put the questions to me through it, rather than guessing or asking ad hoc. Fold my answers back into the plan before implementation starts. Re-run grilling as often as needed until you have a clear understanding of the requirements.
+
+# Linear
+
+When starting work on a Linear issue, move it to In Progress (and assign it to me if unassigned). Don't move it any further. Linear moves it to In Review automatically when I create the PR.
+
 # Git commits
 
 Keep commit messages short: a one-line subject (~50-72 chars, imperative mood), plus at most a few body lines when the why genuinely needs stating. No exhaustive change lists, no test-plan sections, no attribution footers.
+
+# PR descriptions
+
+Keep them short. A ticket reference on its own line when there is one, then three parts:
+
+1. One or two sentences on what the change is and why it was needed. Lead with the problem, not the diff.
+2. A few brief bullets under a `What changed:` label, one line each. Describe the change in plain terms with no file paths, module names, function names, or line numbers. The diff already carries that detail, and prose that duplicates it goes stale.
+3. One or two sentences under a `Notes:` label for what the reviewer needs. Where to start reviewing, known follow-ups, anything deliberately left out of scope.
+
+Never put backticks around a file, module, or function name in a PR body. No test-plan sections, no exhaustive change lists, no attribution footers.
+
+Depth belongs in the review conversation, not the description. If something genuinely needs a paragraph of mechanism to review safely, say so in the notes and let the reviewer ask.
+
+# Worktrees
+
+Never create a git worktree unless I explicitly ask for one. Work on a branch in the checkout the session started in.
+
+Background jobs enforce worktree isolation for edits. When that forces a worktree, finish by committing to a normally named branch and removing the worktree with `git worktree remove`, which keeps the branch. Report the branch name so I can check it out in my main checkout.
 
 # Writing style
 
@@ -39,12 +65,19 @@ Never swap one banned mark for the other. A dash doesn't become a colon and a co
 
 Short sentences are good in their own right. Don't pad a sentence to avoid ending one, and don't recombine two clean sentences into a longer one.
 
+**Markdown prose is unwrapped. One paragraph is one line.**
+
+- Never hard-wrap prose to a column width. A paragraph is a single long line, and the editor or GitHub soft-wraps it for the reader. This covers PR descriptions, plans, handover docs, issue and ticket bodies, review write-ups, and any markdown file.
+- Hard-wrapped prose is miserable to edit, because changing one sentence forces a manual reflow of the whole paragraph and produces a diff that touches every line of it.
+- Line breaks that carry structure stay. Headings, list items, table rows, code fences, and the blank line between paragraphs are all real and none of them are affected by this.
+- Commit messages are the exception. Git tooling does not soft-wrap, so keep wrapping those bodies at roughly 72 columns per the Git commits section.
+
 # Elixir
 Write clear, concise and idiomatic Elixir code with a focus on clarity and maintainability.
 Avoid building any unnecessary features or functionality.
 Ask me if you want me to clarify any of my instructions or if you want me to choose from various architectures or designs.
 Please don't write any Demo or example code for anything you create for me.
-Run tests with each project's `just test <file>` (or `just test-all` where it exists). `just bash-run <command>` runs an arbitrary command in the container when you need something else.
+Run tests with each project's `just test <file>` (or `just test-all` where it exists). To run something else in the container, check that project's `justfile` for the recipe. In super_api it's `just bash-run <command>`; elsewhere it's usually an interactive `just bash`.
 
 **Tiger Style (safety, then performance, then developer experience)**. The full essay lives in the `tiger-style` skill; these are the operative rules:
 - **Bound everything that can grow.** Every external call on a user-facing path has an explicitly chosen timeout; every producer/consumer pair has back-pressure (GenStage demand, Broadway, Oban, `Task.async_stream` with `max_concurrency`, never unbounded casts into a slow GenServer); every retry has a ceiling; every external input (list length, payload, batch) has a size limit enforced loudly.
@@ -134,14 +167,7 @@ end
 
 **Oban enqueue helpers: bare `new`, log context in `meta`**: Inside a worker module, build the job with the `new/2` that `use Oban.Worker` defines (`args |> new(...)`), never `__MODULE__.new(...)`; the module-qualified form is for external callers, and inside the module it's noise. Put identifiers wanted for observability (the ids you'd want attached to log lines, or visible in Oban Web when a job fails: employee_id, onboarding_session_id, etc.) in the job's `meta` at enqueue time. `meta` must be a map (`meta: %{employee_id: id}`). A keyword list fails Oban's `:map` cast and the insert raises. Keep the split clean: `args` carries what `perform/1` consumes; `meta` carries trace/log context, so `perform` never pattern-matches fields it only logs.
 
-**Comments and docs: only three kinds are allowed**. Default to writing no comment at all. Most code should carry none. The only permitted forms:
-1. **Short `@moduledoc`s**. A brief overview of what the module is for and where it sits in the domain (a sentence or two). Never enumerate the module's functions, describe its internals, or restate implementation details. That's what the code and "find references" are for, and it rots the moment the module changes. Callers are the one exception, and only where find-references genuinely can't trace them (dynamic `apply`, process messages, telemetry handlers, framework lifecycle hooks). Name the caller or trigger there. For internal plumbing modules (workers, helpers, submodules not meant to be called from outside their domain), `@moduledoc false` is the right choice. Don't write filler prose just to have a moduledoc.
-2. **`@doc` on public functions, only where needed**. When the contract isn't obvious from the name, args, and return shape (surprising behaviour, units, side effects, what `{:error, _}` values mean). A well-named `fetch_user/1` needs no `@doc`. Never `@doc` private functions.
-3. **Inline comments on genuinely tricky code**. A constraint, invariant, workaround, or non-obvious decision that the code cannot express (e.g. "Stripe requires idempotency keys stable across retries"). If the code path is straightforward, no comment.
-
-Never write a comment that restates what the code already says. No `# performs foo on the args` above `def foo`, no narrating the next line, no section banners, no annotating self-explanatory constructs. The test: if deleting the comment loses nothing but a paraphrase of the code, it should not exist. Prefer a clearer name or extracted function over a comment explaining an unclear one.
-
-**No changelog or motivation-of-change comments**: Never write a comment that narrates the edit, its motivation, or prior behaviour (for example "previously...", "this used to...", "changed this to fix...", "that combination previously tripped `:on_replace: :raise`"). Why a *change* was made belongs in the commit message and PR description, not the source. A comment describes the code as it stands now, never the diff that produced it. This is narrower than (3)'s allowance for a present-tense constraint or invariant (the Stripe example). State the rule that still governs the code, never the bug the change fixed. If the only justification you can write for a comment starts with a past-tense verb about the code, delete it.
+**Comments and docs**: the rule lives in the monorepo root `CLAUDE.md` under "Comments and Documentation" (only three kinds are allowed, default to none, never narrate the edit, `@moduledoc false` for internal plumbing). Follow it in every project, including ones outside that monorepo.
 
 **`@spec` on public functions**: Add `@spec` to public functions; don't spec private helpers. A spec often makes a `@doc` unnecessary. If the name and spec together tell the caller everything, skip the doc.
 
@@ -151,10 +177,10 @@ Never write a comment that restates what the code already says. No `# performs f
 
 ## Maintainability & structure
 
-- **Prefer deep modules.** A lot of behaviour behind a small interface. Depth is leverage, measured as how much a caller gets per unit of interface they have to learn, so push complexity inward and let the implementation be as large as the job needs. Interface means everything a caller must know to use the module correctly, including invariants, ordering constraints, error modes and required configuration, not just the signature. Apply the deletion test when unsure. Inline the module in your head: if complexity vanishes it was a pass-through and shouldn't exist, and if the same complexity reappears at every caller it was earning its keep. The `codebase-design` skill carries the full vocabulary. The rule below is this rule's Elixir form.
-- **Context modules are the domain's front door.** The top-level module named after a domain (`accounts.ex` → `SuperApi.Accounts`) should expose only functions meant to be called from outside the domain. Internal plumbing should be `defp` or live in a clearly-internal submodule. Every `def` on a context is a promise to the rest of the codebase, so keep the public surface tight. Don't reach past the front door from outside (a controller calling a context's schema queries or internal submodules directly); go through the context's public functions.
+- **Prefer deep modules.** The rule, the definition of interface, and the deletion test live in the monorepo root `CLAUDE.md` under "Module Design". Follow it in every project, including ones outside that monorepo. The `codebase-design` skill carries the full vocabulary when you need it. The rule below is this rule's Elixir form.
+- **Context modules are the domain's front door.** Stated at the end of root's "Module Design" and expanded for queries in `super_api/CLAUDE.md`. The sub-rule below is the part neither of them covers.
   - **Demote context functions whose only callers are inside the domain.** When touching a context, check whether any of its `def`s are called only from within the domain (e.g. an Oban worker in the same context). Grep the callers, don't assume. If so, move the function into its caller as a `defp` (transitively: if that leaves another context `def` with only internal callers, fold it too). Being directly unit-tested does not make a function public API. When the caller's integration tests already drive every branch, delete the direct unit tests as redundant; otherwise move the missing cases up to the caller's tests. While moving, drop defensive code the narrowed call site makes unreachable (e.g. a `Repo.preload` the caller's load already guarantees).
-- **Extract genuinely duplicated logic that will drift**. The same multi-step computation, query shape, or validation copy-pasted across functions will fall out of sync. Hold this against the "a little duplication beats the wrong abstraction" rule above. Two things that merely look similar but change for different reasons should stay separate. Flag duplication that will co-evolve, not incidental similarity.
+- **Extract genuinely duplicated logic that will drift**. The same multi-step computation, query shape, or validation copy-pasted across functions will fall out of sync. Hold this against the inline-error-mapping rule above, which prefers a little duplication over a one-line indirection. Two things that merely look similar but change for different reasons should stay separate. Flag duplication that will co-evolve, not incidental similarity.
 - **Flag overly complex code paths** as a prompt to decompose: long functions doing several jobs (split into named steps, same move as the nested-`case` rule), deep nesting / high branching, 4+ positional arguments (reach for a struct or keyword opts), boolean/flag arguments that fork behaviour at the call site (two named functions usually read better), and primitive obsession where a small struct would name the fields. These are judgement prompts, not metrics. A flat 40-line sequence is fine; a 15-line one nested three deep is not.
 - **Names should reveal intent**. Flag misleading names (a `fetch_*` that mutates, a `*?` that returns a non-boolean) and generic ones (`data`, `handle`, `process` on a domain function).
 
@@ -165,7 +191,7 @@ Focus on integration tests over plain unit tests unless there is some complex be
 - **A test must actually test something**. It should fail if the behaviour breaks. Watch for tautological tests (stub a mock to return X, then assert it returned X; that tests Mox, not your code), assert-nothing tests (`assert result`, or only "it didn't raise"), and over-mocking the system under test. Mock the boundaries, exercise the real thing in between.
 - **Remove lower-level tests that duplicate integration coverage**. If an integration test already exercises a path end to end, a unit test asserting the same behaviour at a smaller scale is redundant maintenance cost. Keep it only if it covers a distinct edge or error branch the integration test skips.
 
-# Project guidelines
+# Project guidelines (Elixir projects)
 HTTP Requests: Use the already included and available `:req` (`Req`) library for HTTP requests
 Behaviours for API Clients: Define behaviours for API clients to allow easy mocking
 Error Handling: Handle network failures and unexpected responses gracefully
@@ -180,11 +206,10 @@ Thin Controllers: Keep controllers thin, delegating business logic to contexts
 Security First: Always consider security implications (CSRF, XSS, etc.)
 
 ## General Elixir guidelines
-- `with` is fine for chaining `{:ok, _}` / `{:error, _}` operations when the unmatched value is returned verbatim (no `else`); otherwise prefer explicit `case` (see the `with`/`else` rule above)
 - **Never** nest multiple modules in the same file as it can cause cyclic dependencies and compilation errors
 - **Never** use map access syntax (`changeset[:field]`) on structs as they do not implement the Access behaviour by default. For regular structs, you **must** access the fields directly, such as `my_struct.field` or use higher level APIs that are available on the struct if they exist, `Ecto.Changeset.get_field/2` for changesets
 - Elixir's standard library has everything necessary for date and time manipulation. Familiarize yourself with the common `Time`, `Date`, `DateTime`, and `Calendar` interfaces by accessing their documentation as necessary. **Never** install additional dependencies unless asked or for date/time parsing (which you can use the `date_time_parser` package)
 - Don't use `String.to_atom/1` on user input (memory leak risk)
 - Predicate function names should not start with `is_` and should end in a question mark. Names like `is_thing` should be reserved for guards
 - Elixir's builtin OTP primitives like `DynamicSupervisor` and `Registry`, require names in the child spec, such as `{DynamicSupervisor, name: MyApp.MyDynamicSup}`, then you can use `DynamicSupervisor.start_child(MyApp.MyDynamicSup, child_spec)`
-- Use `Task.async_stream(collection, callback, options)` for concurrent enumeration with back-pressure. The majority of times you will want to pass `timeout: :infinity` as option
+- `Task.async_stream(collection, callback, options)` is the tool for the bounded-concurrency rule above. The majority of times you will want to pass `timeout: :infinity` as an option
