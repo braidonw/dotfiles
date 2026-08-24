@@ -4,10 +4,15 @@ gh/.config/gh/hosts.yml
 # Auto-generated / machine-local state
 fish/.config/fish/fish_variables
 
-# Ignore everything under claude/.claude/ except the two files we track
+# Ignore everything under claude/.claude/ except what we deliberately track
 claude/.claude/*
 !claude/.claude/CLAUDE.md
 !claude/.claude/settings.json
+!claude/.claude/agents/
+!claude/.claude/skills/
+claude/.claude/skills/*
+!claude/.claude/skills/elixir-style/
+!claude/.claude/skills/elixir-review/
 
 # Zed local state
 zed/.config/zed/settings_backup.json
