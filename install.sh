@@ -36,7 +36,9 @@ for pkg in "${packages[@]}"; do
         continue
     fi
     echo "stow   $pkg"
-    stow --target="$HOME" "$pkg"
+    # fish/completions/*.fish are absolute symlinks into OrbStack.app, which stow
+    # refuses to link; OrbStack recreates them itself, so leave them out.
+    stow --target="$HOME" --ignore='(docker|kubectl|orbctl)\.fish' "$pkg"
 done
 
 echo ""
