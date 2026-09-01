@@ -58,7 +58,7 @@ Use the already-included `Req` library for HTTP requests. New uses of `HTTPoison
 - **Transactions**: prefer `Repo.transact` (`SuperApi.Repo.transact` / `XonboardBackend.Repo.transact`) over `Ecto.Multi.new` for simple transactions. Reach for `Ecto.Multi` only when composing multiple dependent steps. A single-step `Ecto.Multi.new |> ... |> Repo.transaction` is the smell.
 - **Queries have exactly one legal location**: a named function on the context module for the schema they query, alongside `fetch/1`, `load/1`, and the mutations. No dedicated `query.ex` modules, and no query rebuilt inline at a callsite. Before writing a query, check whether the context already has a function returning this data (call it), or one returning almost this (extend it with an `opts` keyword parameter rather than adding a sibling). The application layer (controllers, LiveViews, Oban workers, business logic modules) must never build a query directly. See the project CLAUDE.md for the full rationale.
 - **Named bindings** within a query: `from(User, as: :user) |> where([user: user], ...)`, not positional bindings.
-- **`fetch` vs `load`**: see `style-and-idioms.md` rule 16. `fetch/1` no preloads, `load/1` preloads.
+- **`fetch` vs `load`**: see `style-and-idioms.md` rule 17. `fetch/1` no preloads, `load/1` preloads.
 - **Watch for N+1s**: a `Repo` call inside an `Enum.map` or comprehension over query results is usually a missing preload or a query that should be batched. Ties to Tiger Style's "count your queries".
 
 ## 7. Oban
@@ -85,7 +85,7 @@ Use the already-included `Req` library for HTTP requests. New uses of `HTTPoison
 
 ## 10. Security
 
-- No `String.to_atom/1` on user input (`style-and-idioms.md` rule 18).
+- No `String.to_atom/1` on user input (`style-and-idioms.md` rule 19).
 - Don't interpolate user input into raw SQL. Use parameterised Ecto queries or `fragment` with `?` placeholders.
 - Don't log secrets, tokens, TFNs, or PII. Australian super data (TFN, member details) is sensitive; keep it out of logs and error messages.
 - Validate and scope ids against the current actor (avoid IDOR). Authorise, don't just fetch by id from params.

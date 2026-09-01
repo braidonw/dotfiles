@@ -16,18 +16,19 @@ The core rules. Each carries its rationale, so apply the reasoning rather than p
 10. Pass along data the caller already has
 11. A function whose contract is to raise carries a `!` suffix
 12. Predicate naming (`?`, not `is_`)
-13. Pattern matching in function heads: struct guards
-14. Destructure in the body, not the arguments
-15. No `alias ..., as:` renaming
-16. Module organisation: schema vs business logic, `fetch/1` vs `load/1`
-17. Structs don't implement Access
-18. Don't `String.to_atom/1` on user input
-19. Date/time: use the stdlib
-20. Never nest multiple modules in one file
-21. Single-use module attributes live next to their use site
-22. `@spec` on public functions
-23. Prefer the conventional one-liner over hand-rolled equivalents
-24. Comments and documentation
+13. Conditional naming (`maybe_`, not `_if_`/`_unless_`)
+14. Pattern matching in function heads: struct guards
+15. Destructure in the body, not the arguments
+16. No `alias ..., as:` renaming
+17. Module organisation: schema vs business logic, `fetch/1` vs `load/1`
+18. Structs don't implement Access
+19. Don't `String.to_atom/1` on user input
+20. Date/time: use the stdlib
+21. Never nest multiple modules in one file
+22. Single-use module attributes live next to their use site
+23. `@spec` on public functions
+24. Prefer the conventional one-liner over hand-rolled equivalents
+25. Comments and documentation
 
 ---
 
@@ -175,11 +176,15 @@ If a function is designed to raise on failure rather than return `{:error, _}`, 
 
 Predicate function names should end in a question mark and not start with `is_`. Names like `is_thing` should be reserved for guards (macros usable in guard clauses), e.g. `is_admin/1` as a guard vs `admin?/1` as a regular function.
 
-## 13. Pattern matching in function heads: struct guards
+## 13. Conditional naming (`maybe_`, not `_if_`/`_unless_`)
+
+A function that applies its work conditionally is named with a `maybe_` prefix (`maybe_notify/1`, `maybe_apply_discount/2`), the established Elixir convention. Never encode the condition into the name with `_if_` or `_unless_` (`notify_if_subscribed`, `apply_discount_unless_expired`). A name that states the condition duplicates the body and goes stale the moment the condition changes, while `maybe_` makes the same promise ("this may or may not act") regardless of what the check is. If the caller needs to know the exact condition, that belongs in the function's doc or spec, not its name.
+
+## 14. Pattern matching in function heads: struct guards
 
 Only add a struct guard (`%OnboardingSession{} = session`) when the function accepts multiple types and needs to discriminate. If only one type is ever passed, the guard is noise; omit it.
 
-## 14. Destructure in the body, not the arguments
+## 15. Destructure in the body, not the arguments
 
 Prefer destructuring inside the function body over in the arguments, to signal there's no dynamic dispatch on the shape:
 
@@ -198,11 +203,11 @@ end
 
 Exception: when the match in the head is the dispatch (multiple clauses matching different shapes), keep it in the head.
 
-## 15. No `alias ..., as:` renaming
+## 16. No `alias ..., as:` renaming
 
 Don't rename aliases. The trailing segment that `alias` gives you by default (or the full module name) is fine. `as:` rewrites force the reader to keep a mental map between two names for one module. If two in-scope modules share a trailing segment, alias one with its full name and use the other fully qualified, not `alias Baz.Bar, as: BazBar`. This is a hard rule in super_api; existing `as:` aliases there are legacy, not precedent. Check the project CLAUDE.md elsewhere.
 
-## 16. Module organisation: schema vs business logic, `fetch/1` vs `load/1`
+## 17. Module organisation: schema vs business logic, `fetch/1` vs `load/1`
 
 Keep schema/changeset definitions separate from the functions that operate on them:
 
@@ -213,34 +218,34 @@ Keep schema/changeset definitions separate from the functions that operate on th
 
 Oban: the enqueue/convenience function lives alongside `perform/1` in the worker module, not in the context module. See the Oban section of `correctness-and-architecture.md` for the full layering rule.
 
-## 17. Structs don't implement Access
+## 18. Structs don't implement Access
 
 Never use map-access syntax (`changeset[:field]`, `struct[:field]`) on a struct. Structs don't implement the Access behaviour by default, so this raises at runtime. Access fields directly (`my_struct.field`) or via the proper API (`Ecto.Changeset.get_field(changeset, :field)`).
 
-## 18. Don't `String.to_atom/1` on user input
+## 19. Don't `String.to_atom/1` on user input
 
 `String.to_atom/1` on untrusted or user-controlled input is a memory-leak (atom table exhaustion) risk. Use `String.to_existing_atom/1`, keep it a string, or map to a known set.
 
-## 19. Date/time: use the stdlib
+## 20. Date/time: use the stdlib
 
 Elixir's `Time`, `Date`, `DateTime`, and `Calendar` cover date/time manipulation. Never install additional dependencies for it, with one sanctioned exception: `date_time_parser` for parsing.
 
-## 20. Never nest multiple modules in one file
+## 21. Never nest multiple modules in one file
 
 Defining more than one module in a single `.ex` file invites cyclic dependencies and compilation ordering problems. One module per file.
 
-## 21. Single-use module attributes live next to their use site
+## 22. Single-use module attributes live next to their use site
 
 Module attributes can be declared anywhere before use, so put a single-use attribute directly above the function that uses it rather than at the top of the module. Conversely, an attribute is required when a compile-time-computed value (e.g. `inspect(SomeModule)`) goes into a function-head pattern match. Function calls aren't allowed in patterns, so don't try to inline them there.
 
-## 22. `@spec` on public functions
+## 23. `@spec` on public functions
 
 Add `@spec` to public functions; don't spec private helpers. A spec often makes a `@doc` unnecessary. If the name and spec together tell the caller everything, skip the doc.
 
-## 23. Prefer the conventional one-liner over hand-rolled equivalents
+## 24. Prefer the conventional one-liner over hand-rolled equivalents
 
 When the requirement is just "a unique string" (or similar), reach for the boring ecosystem-standard call, `Ecto.UUID.generate()`, not hand-rolled crypto/encoding like `Base.encode16(:crypto.strong_rand_bytes(8))`. A custom construction needs a requirement the conventional one can't meet (length limit, alphabet constraint), not a vague storage concern.
 
-## 24. Comments and documentation
+## 25. Comments and documentation
 
 The full rule lives in the monorepo root CLAUDE.md under "Comments and Documentation". Follow it in every project, including ones outside that monorepo. The short version: only three kinds of comment are allowed (a short module-level doc, an API doc on a public function where the contract isn't obvious, an inline comment on genuinely tricky code), default to none, never narrate the edit or restate the code, and use `@moduledoc false` for internal plumbing.
