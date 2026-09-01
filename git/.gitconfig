@@ -1,8 +1,6 @@
-[commit]
-	gpgsign = true
-[user]
-	signingkey = A6BD19C2A44CFE84
-	email = braidon@superapi.com.au
+# Identity, signing, and anything machine-specific lives in ~/.gitconfig.local.
+[include]
+	path = ~/.gitconfig.local
 [credential "https://github.com"]
 	helper = 
 	helper = !/opt/homebrew/bin/gh auth git-credential
