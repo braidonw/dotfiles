@@ -1,14 +1,15 @@
 ---
 name: code-review
-description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
+description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along three axes: Standards (does the code follow this repo's documented coding standards?), Spec (does the code match what the originating issue/spec asked for?), and Language (does it pass the language-specific review skill, such as elixir-review, when one is installed for the languages in the diff?). Runs the reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
 ---
 
-Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
+Three-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 - **Standards**: does the code conform to this repo's documented coding standards?
 - **Spec**: does the code faithfully implement the originating issue / spec?
+- **Language**: does the code pass the language-specific review skill (for example `elixir-review`) for each language in the diff? Only runs when such a skill is installed.
 
-Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
+All axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
 The issue tracker should have been provided to you. If `docs/agents/issue-tracker.md` is missing, tell the user to run `/setup-matt-pocock-skills`.
 
@@ -55,13 +56,18 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 - **Middle Man**: a class or function that mostly just delegates onward. → cut it, call the real target direct.
 - **Refused Bequest**: a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
 
-### 4. Spawn both sub-agents in parallel
+### 4. Identify language review skills
+
+List the file extensions in the diff and map each to a language (`.ex`/`.exs` is Elixir, `.ts`/`.tsx` is TypeScript, `.rb` is Ruby, `.py` is Python, `.go` is Go, `.rs` is Rust, and so on). For each language, check whether a skill named `<language>-review` is available (`~/.claude/skills/<language>-review/SKILL.md`, `.claude/skills/<language>-review/SKILL.md` in the repo, or in your listed skills). Each match becomes one Language sub-agent, scoped to that language's files. Languages with no matching skill get no Language axis; say so in the final report so the user knows what wasn't covered.
+
+### 5. Spawn all sub-agents in parallel
 
 **Standards sub-agent prompt** should include:
 
 - The full diff command and commit list.
 - The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full (the sub-agent has no other access to it).
 - The brief: "Report, per file/hunk where relevant, (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls: documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
+- When a Language sub-agent is running, the list of files it covers and the note: "Language idioms and conventions for those files are reviewed separately. Confine yourself to the documented standards and the smell baseline for them."
 
 **Spec sub-agent prompt** should include:
 
@@ -71,17 +77,24 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 
 If the spec is missing, skip the Spec sub-agent and note this in the final report.
 
-### 5. Aggregate
+**Language sub-agent prompt** (one per language found in step 4) should include:
 
-Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings, because the two axes are deliberately separate (see _Why two axes_).
+- The diff command restricted to that language's files (`git diff <fixed-point>...HEAD -- <files>`) and the commit list.
+- The instruction: "Invoke the `<language>-review` skill with the Skill tool and carry it out fully against exactly this diff. Read enough surrounding code to judge each finding in context."
+- The brief: "Report findings only, in the skill's own format and severity markers. Do not offer or apply fixes; that decision belongs to the aggregating session. Under 400 words."
+
+### 6. Aggregate
+
+Present the reports under `## Standards`, `## Spec`, and one `## Language: <name>` heading per Language sub-agent, verbatim or lightly cleaned. Do **not** merge or rerank findings, because the axes are deliberately separate (see _Why separate axes_). If the same defect shows up under Standards and Language, keep it in both and say so; agreement is signal, not duplication.
 
 End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes: that's the reranking the separation exists to prevent.
 
-## Why two axes
+## Why separate axes
 
-A change can pass one axis and fail the other:
+A change can pass one axis and fail another:
 
 - Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
 - Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
+- Code that meets the repo's documented standards and the spec but leans on a language anti-pattern the repo never wrote down → **Standards pass, Spec pass, Language fail.**
 
-Reporting them separately stops one axis from masking the other.
+Reporting them separately stops one axis from masking another.
