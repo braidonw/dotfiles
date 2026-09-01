@@ -5,10 +5,13 @@ The main session runs on Fable and should spend its effort on planning, evaluati
 - **`chore`** (Sonnet, low effort). Mechanical, fully-specified work: renames, repetitive multi-site edits, fixture updates, formatting.
 - **`implement`** (Sonnet, high effort). Standard implementation of an agreed plan: write the code and tests, run them, report back. This is the default for most coding work.
 - **`implement-hard`** (Opus, xhigh effort). Reserve for genuinely subtle execution: tricky concurrency, cross-cutting refactors, performance-sensitive or data-risky changes.
+- **`review`** (Opus, high effort). Fresh-context reviewer. Runs the `code-review` skill against a fixed point and reports back. Read-only.
 
 Rules of thumb:
 - Plan first in the main session (plan mode for anything non-trivial), then hand the agreed plan to the right agent with enough context to execute without guessing: relevant file paths, decisions already made, and how to verify.
 - Do trivial edits (a one-file tweak, a quick fix mid-conversation) directly in the main session. Delegation overhead isn't worth it there.
+- Before delegating to `implement` or `implement-hard`, record the fixed point with `git rev-parse HEAD`. When the agent reports back, spawn a `review` agent in a new session with that fixed point and the plan or spec location. Never run the review inside the implementer's context or inline in the main session. `chore` work skips this.
+- Triage the review in the main session: fix real findings (directly if trivial, otherwise re-delegate), dismiss the rest with a one-line reason, and include the outcome in the report to me.
 - Review the agent's report and diff in the main session before declaring work done; final judgement stays with Fable. If an agent reports a plan conflict, resolve it in the main session and re-delegate.
 - Independent tasks from one plan can go to multiple agents in parallel.
 

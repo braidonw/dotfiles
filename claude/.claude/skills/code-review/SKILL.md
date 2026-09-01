@@ -21,6 +21,8 @@ Whatever the user said is the fixed point (a commit SHA, branch name, tag, `main
 
 Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
 
+If the working tree has uncommitted changes (`git status --porcelain` is non-empty), they are part of the review. Use `git diff $(git merge-base <fixed-point> HEAD)` instead, which compares the working tree against the merge-base, and say in the final report that uncommitted work was included.
+
 Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here, not inside two parallel sub-agents.
 
 ### 2. Identify the spec source
@@ -79,7 +81,7 @@ If the spec is missing, skip the Spec sub-agent and note this in the final repor
 
 **Language sub-agent prompt** (one per language found in step 4) should include:
 
-- The diff command restricted to that language's files (`git diff <fixed-point>...HEAD -- <files>`) and the commit list.
+- The diff command from step 1, restricted to that language's files (append `-- <files>`), and the commit list.
 - The instruction: "Invoke the `<language>-review` skill with the Skill tool and carry it out fully against exactly this diff. Read enough surrounding code to judge each finding in context."
 - The brief: "Report findings only, in the skill's own format and severity markers. Do not offer or apply fixes; that decision belongs to the aggregating session. Under 400 words."
 
