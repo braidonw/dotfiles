@@ -1,0 +1,26 @@
+{
+  "skill_name": "pr-review-feedback",
+  "evals": [
+    {
+      "id": 0,
+      "name": "full-triage-multifile",
+      "prompt": "Pull the review comments on PR 6730 and walk me through which ones I actually need to address.",
+      "expected_output": "A triaged report of the unresolved review threads on PR 6730, each with a verdict (agree/disagree/etc.) grounded in the current code, plus concrete recommended fixes. Mentions the 1 resolved thread that was skipped. Read-only — no code changes.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "single-suggestion-pushback",
+      "prompt": "someone left a suggestion on https://github.com/supersimplesuper/code/pull/6744 — is it worth taking?",
+      "expected_output": "Reads the single inline suggestion on PR 6744, opens the actual file it points at (path is repo-root-relative; cwd is super_api/), and gives a reasoned yes/no with a concrete recommendation. No table needed for one comment.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "legit-vs-pushback",
+      "prompt": "go through the unresolved review feedback on 6730 and tell me what's legit vs what I can push back on",
+      "expected_output": "Same PR as eval 0 but with explicit evaluation emphasis: should genuinely distinguish valid comments from ones the author can push back on, citing the current code and project conventions where relevant — not just summarize every comment as a to-do.",
+      "files": []
+    }
+  ]
+}

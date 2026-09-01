@@ -9,10 +9,10 @@ claude/.claude/*
 !claude/.claude/CLAUDE.md
 !claude/.claude/settings.json
 !claude/.claude/agents/
+!claude/.claude/commands/
 !claude/.claude/skills/
-claude/.claude/skills/*
-!claude/.claude/skills/elixir-style/
-!claude/.claude/skills/elixir-review/
+claude/.claude/skills/*-workspace/
+__pycache__/
 
 # Zed local state
 zed/.config/zed/settings_backup.json

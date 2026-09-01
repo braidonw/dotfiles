@@ -1,0 +1,74 @@
+{
+  "skill_name": "pr-board",
+  "notes": "Prompts are run against the live supersimplesuper/code board, so exact PR numbers drift. Assertions target structural correctness (chain reconstruction, bottleneck identification, the no-merge-downward rule) rather than specific PR states.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "full-board-with-stacks",
+      "prompt": "can you please look at all my PRs on github, and give me a summary of where each of them is at? A few of them are stacked branches, and I don't want to merge them down onto branches that have not yet been reviewed (because that will make the review process longer, and mean re-reviewing code that's already been approved)",
+      "expected_output": "A grouped report: PRs ready to merge now, one section per stacked chain ordered bottom to top, standalone PRs needing review, and a suggested merge order. Each chain names its bottleneck and any approved PRs stranded above it.",
+      "assertions": [
+        "Reconstructs the stacked chains from base/head branch names rather than listing PRs flat",
+        "Orders each chain bottom to top, root first",
+        "Names the bottleneck PR for each chain, meaning the lowest PR that is not ready",
+        "Identifies approved PRs stranded above a bottleneck",
+        "States that merging an upper PR down into its base would force re-review of already-approved code",
+        "Recommends a concrete merge order starting with PRs that are approved and green on the trunk",
+        "Does not merge, push, retarget, comment or approve anything"
+      ],
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "what-should-i-merge-next",
+      "prompt": "what should I merge next?",
+      "expected_output": "A short prioritised answer leading with PRs that are approved, CI-clean and based on the trunk, then the cheapest single unblock that frees the most downstream work. Not an exhaustive dump of every PR.",
+      "assertions": [
+        "Leads with PRs that are approved, green and based on the trunk",
+        "Identifies the single cheapest action that unblocks the most other PRs",
+        "Respects bottom-up merge order within any stack it mentions",
+        "Stays brief rather than reproducing the full board"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "refetch-delta",
+      "prompt": "can you refetch that summary?",
+      "expected_output": "A refreshed board that leads with what changed since the previous report (newly approved, newly blocked, newly merged, no movement) before restating the full picture.",
+      "assertions": [
+        "Leads with a delta section describing what changed since the prior report",
+        "Explicitly notes chains or PRs where nothing moved",
+        "Re-runs the fetch rather than reusing stale numbers from earlier in the conversation"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "ci-failure-detail",
+      "prompt": "any of my PRs failing CI? what actually broke",
+      "expected_output": "For each PR with a red check, the specific failing test file, line and assertion pulled from the job log, plus a judgement on whether it is a real regression or a stale run from a superseded commit.",
+      "assertions": [
+        "Drills into the failing job log rather than only naming the red check",
+        "Reports the failing test file, line and assertion text",
+        "Checks whether the failing run corresponds to the PR's current head commit",
+        "Distinguishes a real regression from flake or a stale run"
+      ],
+      "files": []
+    }
+  ],
+  "should_not_trigger": [
+    {
+      "prompt": "what did the reviewer say on PR 7591? I need to work through their comments",
+      "reason": "Single-PR feedback triage belongs to pr-review-feedback"
+    },
+    {
+      "prompt": "can you review PR 7663 for me, Ben asked me to take a look",
+      "reason": "Producing a fresh review of someone else's PR belongs to pr-dual-review"
+    },
+    {
+      "prompt": "split this branch up into stacked PRs, the diff is about 2000 lines now",
+      "reason": "Creating a stack belongs to stacked-delivery. pr-board only reports on stacks that already exist"
+    }
+  ]
+}
