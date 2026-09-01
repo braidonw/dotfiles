@@ -20,6 +20,10 @@ Before doing any non-trivial work or developing a plan, when there are any areas
 
 When starting work on a Linear issue, move it to In Progress (and assign it to me if unassigned). Don't move it any further. Linear moves it to In Review automatically when I create the PR.
 
+# Comments
+
+No extraneous comments. Keep in-code comments to a single line, with minimal words. Don't explain what the code is doing.
+
 # Git commits
 
 Keep commit messages short: a one-line subject (~50-72 chars, imperative mood), plus at most a few body lines when the why genuinely needs stating. No exhaustive change lists, no test-plan sections, no attribution footers.
@@ -77,7 +81,6 @@ Short sentences are good in their own right. Don't pad a sentence to avoid endin
 Avoid building any unnecessary features or functionality.
 Ask me if you want me to clarify any of my instructions or if you want me to choose from various architectures or designs.
 Please don't write any Demo or example code for anything you create for me.
-Run tests with each project's `just test <file>` (or `just test-all` where it exists). To run something else in the container, check that project's `justfile` for the recipe. In super_api it's `just bash-run <command>`; elsewhere it's usually an interactive `just bash`.
 
 # Elixir
 
