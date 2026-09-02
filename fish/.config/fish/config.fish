@@ -39,6 +39,7 @@ alias ll "eza --color=always -lh"
 alias lg lazygit
 alias ld lazydocker
 alias cc claude
+alias zed zed-preview
 alias ccu "claude --settings ~/.claude/settings-opus-ultra.json"
 alias ccf "claude --settings ~/.claude/settings-fable-high.json"
 
