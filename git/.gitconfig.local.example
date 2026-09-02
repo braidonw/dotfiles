@@ -1,0 +1,18 @@
+# Copy to ~/.gitconfig.local and fill in, once per machine.
+#
+# ~/.gitconfig includes this file. Git IGNORES a missing include without any
+# error, then falls back to user@hostname, which GitHub cannot link to a
+# profile. If commits show a placeholder avatar, this file is missing.
+#
+# Check with: git var GIT_AUTHOR_IDENT
+
+[user]
+	name = Your Name
+	email = you@example.com
+	signingkey = YOURKEYID
+[commit]
+	gpgsign = true
+
+# Optional. Per-directory identity override.
+# [includeIf "gitdir:~/Developer/dotfiles/"]
+# 	path = ~/.gitconfig.personal

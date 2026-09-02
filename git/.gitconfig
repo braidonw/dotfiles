@@ -1,4 +1,7 @@
-# Identity, signing, and anything machine-specific lives in ~/.gitconfig.local.
+# Identity, signing, and anything machine-specific lives in ~/.gitconfig.local,
+# which is untracked and created per machine from git/.gitconfig.local.example.
+# A missing include is silently ignored by git, so verify with:
+#   git var GIT_AUTHOR_IDENT
 [include]
 	path = ~/.gitconfig.local
 [credential "https://github.com"]

@@ -38,8 +38,19 @@ for pkg in "${packages[@]}"; do
     echo "stow   $pkg"
     # fish/completions/*.fish are absolute symlinks into OrbStack.app, which stow
     # refuses to link; OrbStack recreates them itself, so leave them out.
-    stow --target="$HOME" --ignore='(docker|kubectl|orbctl)\.fish' "$pkg"
+    stow --target="$HOME" --ignore='(docker|kubectl|orbctl)\.fish' \
+        --ignore='.*\.example' "$pkg"
 done
+
+# ~/.gitconfig includes ~/.gitconfig.local. Git ignores a missing include
+# silently and falls back to user@hostname, so seed it rather than let commits
+# go out with an identity GitHub cannot link to a profile.
+if [ ! -f "$HOME/.gitconfig.local" ]; then
+    cp git/.gitconfig.local.example "$HOME/.gitconfig.local"
+    echo ""
+    echo "Created ~/.gitconfig.local from the example. Fill in name, email and"
+    echo "signingkey before committing, then check: git var GIT_AUTHOR_IDENT"
+fi
 
 echo ""
 echo "Done. Symlinks point into $(pwd)."
