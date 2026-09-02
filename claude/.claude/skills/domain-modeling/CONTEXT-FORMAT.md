@@ -31,7 +31,7 @@ _Avoid_: Client, buyer, account
 
 ## Single vs multi-context repos
 
-**Single context (most repos):** One `CONTEXT.md` at the repo root.
+**Single context (most repos):** One `CONTEXT.md` at the docs root (the repo root in-repo, or the external root per `~/.claude/skills/setup-braidon-skills/locate.md`).
 
 **Multiple contexts:** A `CONTEXT-MAP.md` at the repo root lists the contexts, where they live, and how they relate to each other:
 

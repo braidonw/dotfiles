@@ -9,6 +9,8 @@ Actively build and sharpen the project's domain model as you design. This is the
 
 ## File structure
 
+This layout may live in-repo or in the external agent docs root. Resolve which one applies per `~/.claude/skills/setup-braidon-skills/locate.md`. The first two trees are the in-repo shape. The third is the external shape.
+
 Most repos have a single context:
 
 ```
@@ -37,7 +39,21 @@ If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The ma
 │       └── docs/adr/
 ```
 
-Create files lazily: only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
+In the external root (`~/Developer/agent-docs/<owner>/<repo>/`) the same files sit directly under the root with no `docs/` or `src/` segments. `<context>` is the project's path relative to the repo root:
+
+```
+<root>/
+├── CONTEXT-MAP.md                    ← only for multi-context
+├── adr/                              ← system-wide decisions
+├── ordering/
+│   ├── CONTEXT.md
+│   └── adr/                          ← context-specific decisions
+└── billing/
+    ├── CONTEXT.md
+    └── adr/
+```
+
+Create files lazily in either location: only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no ADR directory exists, create it when the first ADR is needed.
 
 ## During the session
 

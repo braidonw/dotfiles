@@ -182,7 +182,7 @@ A function that applies its work conditionally is named with a `maybe_` prefix (
 
 ## 14. Pattern matching in function heads: struct guards
 
-Only add a struct guard (`%OnboardingSession{} = session`) when the function accepts multiple types and needs to discriminate. If only one type is ever passed, the guard is noise; omit it.
+A struct match (`%OnboardingSession{} = session`) is welcome on any argument that is always that struct. It documents the type and lets the type checker narrow on it. Encouraged on public functions, optional on private ones. Field destructuring is a separate matter; see rule 15.
 
 ## 15. Destructure in the body, not the arguments
 
