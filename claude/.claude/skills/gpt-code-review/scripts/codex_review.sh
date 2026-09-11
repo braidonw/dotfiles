@@ -2,8 +2,16 @@
 set -euo pipefail
 
 # Runs a Codex code review of the current branch via the Codex CLI.
-# Usage: codex_review.sh [--base <branch>] [--model <model>] [--focus "<text>"]
+# Usage: codex_review.sh [--base <ref>] [--model <model>] [--focus "<text>"]
+# The base may be a branch name, a tag, a SHA, or HEAD~5.
 # Prints the review to stdout and saves it next to the prompt in a temp dir.
+#
+# Exit codes:
+#   0  review produced; last line is "REVIEW_SAVED: <path>"
+#   1  genuine failure (provider error, no output)
+#   2  bad arguments
+#   3  no diff against the base
+#   4  Codex unavailable; stderr carries "CODEX_UNAVAILABLE: <reason>"
 
 BASE="main"
 MODEL="gpt-5.6-sol"
@@ -18,14 +26,37 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# The codex install is a symlink in ~/.local/bin, which a subagent shell may not have.
+export PATH="$HOME/.local/bin:$PATH"
+
+# Preflight, so an unavailable Codex costs nothing and is distinguishable from a
+# real failure. Exit 4 means "skip me", never "the review is broken".
+if ! command -v codex >/dev/null 2>&1; then
+  echo "CODEX_UNAVAILABLE: the codex CLI is not on PATH" >&2
+  exit 4
+fi
+
+if ! codex login status >/dev/null 2>&1; then
+  echo "CODEX_UNAVAILABLE: not logged in to Codex (run: codex login)" >&2
+  exit 4
+fi
+
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-if git rev-parse --verify -q "origin/$BASE" >/dev/null; then
+
+# A plain branch name prefers the remote, since a stale local branch yields the
+# wrong merge-base. Anything else (a SHA, a tag, HEAD~5) is used as given, so
+# callers can pass an arbitrary fixed point. "HEAD" is excluded explicitly
+# because refs/remotes/origin/HEAD exists and would silently become main.
+if [[ "$BASE" != "HEAD" ]] && git show-ref --verify --quiet "refs/remotes/origin/$BASE"; then
   BASE_REF="origin/$BASE"
-else
+elif git rev-parse --verify -q "$BASE^{commit}" >/dev/null; then
   BASE_REF="$BASE"
+else
+  echo "cannot resolve base: $BASE" >&2
+  exit 2
 fi
 MERGE_BASE="$(git merge-base "$BASE_REF" HEAD)"
 
@@ -132,16 +163,34 @@ EOF
   fi
 } > "$PROMPT_FILE"
 
+STDERR_FILE="$WORKDIR/codex.stderr"
+
+set +e
 codex exec -m "$MODEL" \
   -c model_reasoning_effort=high \
   --sandbox read-only \
   --ephemeral \
   --color never \
   --output-last-message "$REVIEW_FILE" \
-  - < "$PROMPT_FILE"
+  - < "$PROMPT_FILE" 2>"$STDERR_FILE"
+CODEX_STATUS=$?
+set -e
 
-if [[ ! -s "$REVIEW_FILE" ]]; then
-  echo "codex exec finished but produced no review output" >&2
+cat "$STDERR_FILE" >&2
+
+if [[ "$CODEX_STATUS" -ne 0 || ! -s "$REVIEW_FILE" ]]; then
+  # Quota exhaustion only surfaces here, mid-run, so it is classified from stderr.
+  # Exhausted and throttled are both unavailable but mean different things to the
+  # reader, so they are reported apart rather than as one "usage limit" message.
+  if grep -qiE 'usage limit|insufficient_quota|out of (credits|quota)|quota exceeded' "$STDERR_FILE"; then
+    echo "CODEX_UNAVAILABLE: usage limit reached" >&2
+    exit 4
+  fi
+  if grep -qiE 'rate.?limit|too many requests|\b429\b' "$STDERR_FILE"; then
+    echo "CODEX_UNAVAILABLE: rate limited by the provider, retry shortly" >&2
+    exit 4
+  fi
+  echo "codex exec failed (status $CODEX_STATUS) or produced no review output" >&2
   exit 1
 fi
 

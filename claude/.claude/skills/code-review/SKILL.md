@@ -1,13 +1,17 @@
 ---
 name: code-review
-description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along three axes: Standards (does the code follow this repo's documented coding standards?), Spec (does the code match what the originating issue/spec asked for?), and Language (does it pass the language-specific review skill, such as elixir-review, when one is installed for the languages in the diff?). Runs the reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
+description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along five axes: Standards (does the code follow this repo's documented coding standards?), Spec (does the code match what the originating issue/spec asked for?), Language (does it pass the language-specific review skill, such as elixir-review, when one is installed for the languages in the diff?), Codex (an independent second-model review via the OpenAI Codex CLI, skipped cleanly when Codex is unavailable), and Simplification (is there less code that does the same job?). Runs the reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, a dual or two-model review, asks whether the code can be simplified, or asks to \"review since X\"."
 ---
 
-Three-axis review of the diff between `HEAD` and a fixed point the user supplies:
+Five-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 - **Standards**: does the code conform to this repo's documented coding standards?
 - **Spec**: does the code faithfully implement the originating issue / spec?
 - **Language**: does the code pass the language-specific review skill (for example `elixir-review`) for each language in the diff? Only runs when such a skill is installed.
+- **Codex**: what does a different model, with no stake in this session, see? OpenAI Codex reviews the same diff through the Codex CLI and its findings are triaged against the real code.
+- **Simplification**: is there less code that does the same job? Single-caller indirection, handling for errors that cannot happen, and work the repo already does elsewhere.
+
+Standards, Spec and Language are in-house lenses pointed at conventions. Codex is the outside eye, and it tends to catch cross-cutting things the lenses skip (build wiring, infra, config, plain correctness bugs). Simplification is pointed at subtraction rather than at conformance or correctness, so it is the axis with something to say about a diff the other four pass. Where two axes independently flag the same site, that agreement is the strongest signal in the report.
 
 All axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
@@ -58,11 +62,37 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 - **Middle Man**: a class or function that mostly just delegates onward. → cut it, call the real target direct.
 - **Refused Bequest**: a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
 
-### 4. Identify language review skills
+### 4. The simplification baseline
+
+The Simplification axis carries its own fixed catalog, the way Standards carries the smell baseline. It answers one question and no other. Is there less code that does the same job? Codex asks whether the code is wrong, Language whether it is idiomatic, Standards whether it conforms, Spec whether it is what was asked. Runtime efficiency (an N+1, a missing preload, repeated work in a loop) belongs to the language review skill and to Codex. Keeping the question this narrow is what stops the axis becoming a second Codex.
+
+Scope is the diff, plus pre-existing code whose simplification opportunity the diff *created*. A helper that had two callers and has one now because the diff removed the other is in scope. A messy module the diff merely sits beside is not.
+
+Each item reads *what it is* → *what to remove*:
+
+- **Single-caller indirection**: a private function, wrapper, module, or params struct with one caller and no meaning of its own. → inline it into the caller.
+- **Unnecessary error handling**: a branch for an error that cannot happen, a defensive nil check on a value a contract guarantees, an error mapped to itself. → delete the branch, take the bang variant, let it crash.
+- **Dead on arrival**: a clause, branch, or function no path reaches after this change. → delete it.
+- **Ceremony**: an option, parameter, or default that carries the same value at every call site. → drop the parameter, hard-code the value.
+- **Verbose control flow**: a `case`, `cond`, or `if` chain that collapses to a pattern match or a lookup with no loss of clarity. → collapse it.
+- **Redundant binding**: a name bound once and used once on the next line. → inline the expression.
+- **Reimplemented stdlib or framework**: hand-rolled what the standard library, the ORM, or the framework already does. → call the existing function.
+- **Reinvented in-repo**: the diff builds something this codebase already provides. → call what exists. Search for it and cite it by name, or stay quiet. An uncited hunch that "a helper probably exists" is worse than no finding.
+- **Test verbosity**: setup repeated across cases, mocking past the boundary under test, assertions that only restate the factory. Test files are in scope for every item above too.
+
+Three rules bind the catalog:
+
+- **Clarity outranks brevity.** Fewer lines is the measure only where the shorter version reads at least as well. A dense one-liner replacing a legible branch is a finding not worth making, and so is any merge of two things that change for different reasons.
+- **Behaviour is fixed.** Every proposal is behaviour-identical. A change in what the code does belongs to another axis.
+- **Documented rules are hard limits.** The standards sources from step 3 bind this axis as boundaries rather than as a checklist. A repo that documents deep modules, context front doors, or a layer between a job and its business logic pays for that indirection on purpose, and the axis reports such a site under "blocked by a documented rule" rather than proposing the breach.
+
+Over-generalisation and comment pruning belong to Standards, as Speculative Generality and as the repo's own comment rule. This axis leaves both to it.
+
+### 5. Identify language review skills
 
 List the file extensions in the diff and map each to a language (`.ex`/`.exs` is Elixir, `.ts`/`.tsx` is TypeScript, `.rb` is Ruby, `.py` is Python, `.go` is Go, `.rs` is Rust, and so on). For each language, check whether a skill named `<language>-review` is available (`~/.claude/skills/<language>-review/SKILL.md`, `.claude/skills/<language>-review/SKILL.md` in the repo, or in your listed skills). Each match becomes one Language sub-agent, scoped to that language's files. Languages with no matching skill get no Language axis; say so in the final report so the user knows what wasn't covered.
 
-### 5. Spawn all sub-agents in parallel
+### 6. Spawn all sub-agents in parallel
 
 **Standards sub-agent prompt** should include:
 
@@ -79,17 +109,53 @@ List the file extensions in the diff and map each to a language (`.ex`/`.exs` is
 
 If the spec is missing, skip the Spec sub-agent and note this in the final report.
 
-**Language sub-agent prompt** (one per language found in step 4) should include:
+**Codex sub-agent prompt.** This axis is **on by default**. Skip it only when the request says to ("no codex", "claude only", "skip the second model"), and say in the final report that it was skipped by request. Its prompt should include:
+
+- The fixed point, and any focus area the user gave.
+- The brief:
+
+  > Run `~/.claude/skills/gpt-code-review/scripts/codex_review.sh --base <fixed-point>` (add `--focus "<text>"` if a focus was given). It takes 2-10 minutes. Run it in the foreground and wait for it. Then handle the exit code:
+  >
+  > - **0**: the last line is `REVIEW_SAVED: <path>`. Read that review, then invoke the `gpt-code-review` skill with the Skill tool and carry out its Step 2 triage in full. Open each cited line, read enough surrounding code and callers to judge the claim, and classify every finding Confirmed, Plausible, or Rejected against this repo's CLAUDE.md conventions rather than generic taste. Report confirmed and plausible findings first, most severe first, as `file:line` plus what is wrong and the fix. Then rejected findings, one line each with the reason, so they can be overruled. Under 400 words, ending with the saved review path.
+  > - **4**: Codex is unavailable, and its stderr carries `CODEX_UNAVAILABLE: <reason>`. Your whole report is one line, `Skipped: <reason>`.
+  > - **3**: no diff against the base. Your whole report is one line, `Skipped: no diff against <fixed-point>`.
+  > - **anything else**: report `Failed: <the error>` in a line or two.
+  >
+  > Whatever the exit code, your report is what the script produced. Reviewing the code yourself in Codex's place would put a second Claude opinion where an independent one is supposed to be, and the other axes already cover Claude's view.
+
+**Language sub-agent prompt** (one per language found in step 5) should include:
 
 - The diff command from step 1, restricted to that language's files (append `-- <files>`), and the commit list.
 - The instruction: "Invoke the `<language>-review` skill with the Skill tool and carry it out fully against exactly this diff. Read enough surrounding code to judge each finding in context."
 - The brief: "Report findings only, in the skill's own format and severity markers. Do not offer or apply fixes; that decision belongs to the aggregating session. Under 400 words."
 
-### 6. Aggregate
+**Simplification sub-agent prompt.** This axis is **on by default**. Skip it only when the request says to ("no simplification", "correctness only", "just the bugs"), and say in the final report that it was skipped by request. Its prompt should include:
 
-Present the reports under `## Standards`, `## Spec`, and one `## Language: <name>` heading per Language sub-agent, verbatim or lightly cleaned. Do **not** merge or rerank findings, because the axes are deliberately separate (see _Why separate axes_). If the same defect shows up under Standards and Language, keep it in both and say so; agreement is signal, not duplication.
+- The full diff command and commit list.
+- The **simplification baseline from step 4 pasted in full** (the sub-agent has no other access to it), and the list of standards-source files from step 3 as the boundaries it may not cross.
+- The brief:
 
-End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes: that's the reranking the separation exists to prevent.
+  > Apply the baseline to the diff. Verify every claim against the code before you make it. Grep the repo for callers before calling something single-caller and give the count. Read the callee's contract before calling an error branch unreachable. An unverified claim is a wrong finding.
+  >
+  > Report under three headings. **Clear wins**: behaviour-identical, strictly less code, no clarity cost. Name what gets deleted and give the line delta. **Judgement calls**: a real tradeoff exists, stated in one line so it can be overruled. **Blocked by a documented rule**: a simplification you would otherwise propose, with the rule that forbids it named.
+  >
+  > Each finding is `file:line`, what goes, and why, in a line or two. No code snippets. "Nothing worth simplifying" is a valid and expected report on a clean diff. Padding the section is a failure.
+  >
+  > Other axes cover idiom, conformance and correctness. Where one of them would flag a site you found, report it anyway. Agreement between axes is the most useful signal in this report, so suppressing your own finding destroys it. Under 400 words.
+
+### 7. Aggregate
+
+Present the reports under `## Standards`, `## Spec`, `## Codex`, `## Simplification`, and one `## Language: <name>` heading per Language sub-agent, verbatim or lightly cleaned. Do **not** merge or rerank findings, because the axes are deliberately separate (see _Why separate axes_). If the same defect shows up under Standards and Language, keep it in both and say so; agreement is signal, not duplication.
+
+End with a summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes: that's the reranking the separation exists to prevent.
+
+Under the summary, add a **corroboration** list: every site two or more axes flagged, one line each, naming the site and which axes raised it.
+
+```
+Corroborated: `lib/foo.ex:42` (Codex and Language). `lib/bar.ex:9` (Standards and Codex).
+```
+
+These are pointers, not findings. They preserve the agreement signal, which is the most reliable thing in the report, while every finding stays in the section that owns it.
 
 ## Why separate axes
 
@@ -98,5 +164,7 @@ A change can pass one axis and fail another:
 - Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
 - Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
 - Code that meets the repo's documented standards and the spec but leans on a language anti-pattern the repo never wrote down → **Standards pass, Spec pass, Language fail.**
+- Code that satisfies all three in-house lenses but carries a plain correctness bug, because every lens was pointed at conventions rather than behaviour → **Codex fail.**
+- Code that is conformant, idiomatic, correct and exactly what the issue asked for, and still takes forty lines to say what fifteen would → **four passes, Simplification fail.**
 
 Reporting them separately stops one axis from masking another.

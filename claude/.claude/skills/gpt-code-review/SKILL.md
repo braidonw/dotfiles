@@ -31,16 +31,23 @@ Notes:
   the user's Codex account offers.
 - The script reviews everything since the merge-base with the base branch,
   including uncommitted changes, and lists untracked files for Codex to read.
-- Exit code 3 means there is no diff against the base — report that instead
-  of treating it as a failure.
+- Exit code 3 means there is no diff against the base. Report that instead of
+  treating it as a failure.
+- Exit code 4 means Codex is unavailable, and stderr carries
+  `CODEX_UNAVAILABLE: <reason>`: not installed, not logged in, usage limit
+  reached, or rate limited. Report the reason.
+- `--base` takes any ref, not just a branch name. A plain branch name is
+  resolved against `origin` so a stale local branch can't skew the merge-base.
 - Codex runs in a read-only sandbox so it can explore callers and context
   but cannot modify anything; it picks up the repo's AGENTS.md automatically
   and the prompt points it at the CLAUDE.md conventions.
 
-If the script fails (codex missing, not logged in — fix with `codex login` —
-or a provider error), show the user
-the actual error and stop — don't fall back to reviewing the code yourself as
-a substitute, since the user specifically asked for Codex's opinion.
+Whatever the script reports, unavailable (exit 4, fix a login with
+`codex login`) or a genuine failure, show the user the actual error and stop.
+Reviewing the code yourself instead would substitute a Claude opinion for the
+outside one the user asked for. Note this stopping rule is local to this skill,
+where Codex is the whole request. Inside `code-review` the Codex axis is one of
+four and its absence never blocks the other three.
 
 ## Step 2: Triage the findings
 

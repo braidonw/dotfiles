@@ -17,8 +17,8 @@ description: >-
   which makes it the right skill for "anything I should be reviewing?", "what's
   waiting on the team?", or "any PRs I haven't looked at yet?". This is
   a BOARD-level tool, so prefer it over the single-PR skills whenever the ask
-  spans more than one PR. Distinct from pr-review-feedback, which triages the
-  comments on one PR the user authored, and from pr-dual-review, which produces
+  spans more than one PR. Distinct from pr-feedback, which triages the
+  comments on one PR the user authored, and from pr-review, which produces
   a fresh review of somebody else's PR.
 ---
 

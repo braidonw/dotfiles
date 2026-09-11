@@ -60,11 +60,11 @@
   "should_not_trigger": [
     {
       "prompt": "what did the reviewer say on PR 7591? I need to work through their comments",
-      "reason": "Single-PR feedback triage belongs to pr-review-feedback"
+      "reason": "Single-PR feedback triage belongs to pr-feedback"
     },
     {
       "prompt": "can you review PR 7663 for me, Ben asked me to take a look",
-      "reason": "Producing a fresh review of someone else's PR belongs to pr-dual-review"
+      "reason": "Producing a fresh review of someone else's PR belongs to pr-review"
     },
     {
       "prompt": "split this branch up into stacked PRs, the diff is about 2000 lines now",

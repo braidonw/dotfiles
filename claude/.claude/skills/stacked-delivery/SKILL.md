@@ -1,9 +1,9 @@
 ---
 name: stacked-delivery
-description: "Workflow for large pieces of work (anticipated diff roughly 1,000+ LOC, or multi-session tasks): build everything on a single wip/ branch, run the dual-review skill from a fresh context and fix findings until a clean pass, then split the result into a stack of ~1,000-LOC branches that each pass CI independently, and hand over a description document for the user to create the PRs from. Use this at the START of any large work item (to set up the wip branch) and again at DELIVERY time (review loop + split). Also triggers when the user says 'stacked PRs', 'split this branch/PR up', 'wip branch workflow', or asks to make a big diff reviewable. Do NOT use for ordinary small-to-medium tasks that fit in one reviewable PR — those follow the normal workflow. NEVER pushes or creates PRs; the user does that themselves."
+description: "Workflow for large pieces of work (anticipated diff roughly 1,000+ LOC, or multi-session tasks): build everything on a single wip/ branch, run the code-review skill from a fresh context and fix findings until a clean pass, then split the result into a stack of ~1,000-LOC branches that each pass CI independently, and hand over a description document for the user to create the PRs from. Use this at the START of any large work item (to set up the wip branch) and again at DELIVERY time (review loop + split). Also triggers when the user says 'stacked PRs', 'split this branch/PR up', 'wip branch workflow', or asks to make a big diff reviewable. Do NOT use for ordinary small-to-medium tasks that fit in one reviewable PR — those follow the normal workflow. NEVER pushes or creates PRs; the user does that themselves."
 ---
 
-# Stacked delivery: wip branch → dual-review loop → stacked branches
+# Stacked delivery: wip branch -> review loop -> stacked branches
 
 The goal is reviewability: a large work item is built in one place, made
 correct via independent review, then re-cut into a stack of branches a human
@@ -19,15 +19,15 @@ created — the user reviews everything locally and creates PRs themselves.
   implement/chore agents, tests alongside code). This skill only governs the
   container the work lands in.
 
-## Phase B — Dual-review loop (fresh context)
+## Phase B. Review loop (fresh context)
 
 The review must not be run by the context that wrote the code. When the work
 on the wip branch is complete:
 
 1. Spawn a fresh `general-purpose` subagent whose prompt contains only: the
    repo path, the wip branch name, the base branch, and the instruction to
-   invoke the `dual-review` skill and return the merged report verbatim as
-   its final output — explicitly telling it NOT to apply any fixes. Give it
+   invoke the `code-review` skill against the base branch as its fixed point,
+   and return the aggregated report verbatim as its final output — explicitly telling it NOT to apply any fixes. Give it
    no implementation context, no summary of what the change "should" do
    beyond one neutral sentence.
 2. Back in the main session, triage the returned report and fix the
@@ -100,7 +100,7 @@ final message. It contains:
    suggested PR title, a summary of what it contains and why it's a
    coherent unit, its base branch, and how it was verified.
 3. **Scaffold-test ledger** — from Phase C, or "none".
-4. **Review residue** — dual-review findings that were rejected during
+4. **Review residue**. Findings that were rejected during
    triage (with the one-line reason), so the user can overrule.
 
 Save the doc outside the repo working tree (scratchpad or the session

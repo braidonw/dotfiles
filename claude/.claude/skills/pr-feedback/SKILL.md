@@ -1,18 +1,18 @@
 ---
-name: pr-review-feedback
+name: pr-feedback
 description: >-
-  Pull the review comments left on a GitHub PR, evaluate each one on its
-  merits, and recommend concrete fixes — read-only, no code changes, no
-  write-back. Use this whenever the user wants to act on feedback *someone else*
-  left on their pull request: "what did the reviewer say?", "go through the PR
-  comments", "what do I need to address on my PR?", "any unresolved comments?",
-  "did CodeRabbit / the reviewer flag anything?", "help me respond to the
-  review", "triage the review feedback". Defaults to the PR open on the current
-  branch; also accepts a PR number or URL. This is the INVERSE of the
-  review-producing skills (elixir-review, code-review, review-pr) where Claude
-  *is* the reviewer — reach for this one instead whenever the review already
-  exists on GitHub and the user is the author deciding what to do about it. Does
-  NOT apply to producing a fresh review of code, nor to posting replies or
+  Act on the review comments OTHERS have already left on the USER'S OWN GitHub
+  pull request: pull the comments, evaluate each one on its merits, and
+  recommend concrete fixes. Read-only, no code changes, no write-back. Use this
+  whenever the user wants to act on feedback someone else left on their pull
+  request: "what did the reviewer say?", "go through the PR comments", "what do
+  I need to address on my PR?", "any unresolved comments?", "did CodeRabbit /
+  the reviewer flag anything?", "help me respond to the review", "triage the
+  review feedback". Defaults to the PR open on the current branch; also accepts
+  a PR number or URL. The review already exists here and the user is the author
+  deciding what to do about it, which is the INVERSE of the review-producing
+  skills (pr-review, code-review, elixir-review) where Claude *is* the reviewer.
+  Does NOT apply to producing a fresh review of code, nor to posting replies or
   resolving threads on GitHub (this skill never writes back).
 ---
 

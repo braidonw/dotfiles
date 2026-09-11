@@ -50,7 +50,7 @@
   "icon_theme": {
     "mode": "dark",
     "light": "Catppuccin Mocha",
-    "dark": "Warm Charmed Icons",
+    "dark": "Colored Zed Icons Theme Dark",
   },
   "buffer_font_features": {
     "calt": true,
@@ -74,8 +74,8 @@
   "buffer_font_size": 14.0,
   "theme": {
     "mode": "dark",
-    "light": "Rosé Pine Dawn",
-    "dark": "Monokai Pro (CE)",
+    "light": "One Light",
+    "dark": "One Dark",
   },
   "terminal": {
     "font_family": "Berkeley Mono",
@@ -114,10 +114,10 @@
     "button": true,
     "hide_root": true,
   },
-  "colorize_brackets": true,
+  "colorize_brackets": false,
   "buffer_line_height": "comfortable",
   "indent_guides": {
-    "coloring": "indent_aware",
+    "coloring": "fixed",
     "background_coloring": "disabled",
   },
   "preview_tabs": {
