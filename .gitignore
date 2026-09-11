@@ -12,6 +12,17 @@ claude/.claude/*
 !claude/.claude/commands/
 !claude/.claude/skills/
 claude/.claude/skills/*-workspace/
+
+# Ignore everything under agents/.agents/ except what we deliberately track
+agents/.agents/*
+!agents/.agents/AGENTS.md
+!agents/.agents/skills/
+agents/.agents/skills/*-workspace/
+
+# Ignore everything under codex/.codex/ except what we deliberately track
+codex/.codex/*
+!codex/.codex/AGENTS.md
+!codex/.codex/agents/
 __pycache__/
 
 # Zed local state

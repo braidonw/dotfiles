@@ -7,12 +7,7 @@
   "packages": [
     "npm:pi-web-access"
   ],
-  "skills": [
-    "~/.claude/skills/elixir-review",
-    "~/.claude/skills/tiger-style"
-  ],
   "enabledModels": [
-    "kimi-coding/k3",
     "openai-codex/gpt-5.6-sol"
   ]
 }
