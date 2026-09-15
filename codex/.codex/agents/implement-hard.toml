@@ -1,7 +1,7 @@
 name = "implement-hard"
 description = "Implements genuinely difficult, cross-cutting, or subtle coding work. Tricky concurrency, gnarly refactors across many modules, performance-sensitive code, migrations with data risk. Use sparingly, when the task is too hard for the standard implement agent. Design decisions still belong to the main session."
-model = "gpt-5.6-sol"
-model_reasoning_effort = "xhigh"
+model = "gpt-6-astra"
+model_reasoning_effort = "low"
 developer_instructions = """
 You are the heavy implementation agent, used for the hardest execution work. The main session has already made the design decisions; your job is to execute them with maximum care.
 

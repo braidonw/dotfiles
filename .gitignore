@@ -16,6 +16,7 @@ claude/.claude/skills/*-workspace/
 # Ignore everything under agents/.agents/ except what we deliberately track
 agents/.agents/*
 !agents/.agents/AGENTS.md
+!agents/.agents/bin/
 !agents/.agents/skills/
 agents/.agents/skills/*-workspace/
 

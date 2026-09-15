@@ -3,8 +3,8 @@
 The main session runs on the strongest model available and should spend its effort on planning, evaluating tradeoffs, reviewing results, and making final decisions. Delegate execution to the four sub-agent roles instead of doing it inline. Each harness defines these roles under the same names (`~/.claude/agents/*.md` for Claude Code, `~/.codex/agents/*.toml` for Codex):
 
 - **`chore`** (cheapest and fastest setting, low effort). Mechanical, fully-specified work: renames, repetitive multi-site edits, fixture updates, formatting.
-- **`implement`** (standard setting, high effort). Standard implementation of an agreed plan: write the code and tests, run them, report back. This is the default for most coding work.
-- **`implement-hard`** (strongest setting, xhigh effort). Reserve for genuinely subtle execution: tricky concurrency, cross-cutting refactors, performance-sensitive or data-risky changes.
+- **`implement`** (Opus 5, medium effort). Standard implementation of an agreed plan: write the code and tests, run them, report back. This is the default for most coding work.
+- **`implement-hard`** (Opus 5 orchestrating, Codex implementing). The second-engine tier, not a heavier one. Reach for it when a different model's strengths suit the job, not when the work simply needs more grinding. Opus hands the plan to Codex, runs the tests itself, and feeds real failures back into the same Codex thread for up to two rounds. It implements natively only when Codex is unavailable.
 - **`review`** (strongest setting, high effort). Fresh-context reviewer. Runs the `code-review` skill against a fixed point and reports back. Read-only.
 
 Rules of thumb:
