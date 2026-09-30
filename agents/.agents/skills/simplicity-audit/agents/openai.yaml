@@ -1,0 +1,5 @@
+interface:
+  display_name: "Simplicity audit"
+  short_description: "Find over-engineering to cut from a project"
+policy:
+  allow_implicit_invocation: false

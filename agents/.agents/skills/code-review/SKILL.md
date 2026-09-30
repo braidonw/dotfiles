@@ -77,6 +77,7 @@ Each item reads *what it is* → *what to remove*:
 - **Verbose control flow**: a `case`, `cond`, or `if` chain that collapses to a pattern match or a lookup with no loss of clarity. → collapse it.
 - **Redundant binding**: a name bound once and used once on the next line. → inline the expression.
 - **Reimplemented stdlib or framework**: hand-rolled what the standard library, the ORM, or the framework already does. → call the existing function.
+- **Platform already does it**: app code or a new dependency doing what the platform provides (a database constraint, a unique index, a framework feature, a few lines in place of a package). → use the platform feature, drop the dependency.
 - **Reinvented in-repo**: the diff builds something this codebase already provides. → call what exists. Search for it and cite it by name, or stay quiet. An uncited hunch that "a helper probably exists" is worse than no finding.
 - **Test verbosity**: setup repeated across cases, mocking past the boundary under test, assertions that only restate the factory. Test files are in scope for every item above too.
 
@@ -137,7 +138,7 @@ If the spec is missing, skip the Spec sub-agent and note this in the final repor
 
   > Apply the baseline to the diff. Verify every claim against the code before you make it. Grep the repo for callers before calling something single-caller and give the count. Read the callee's contract before calling an error branch unreachable. An unverified claim is a wrong finding.
   >
-  > Report under three headings. **Clear wins**: behaviour-identical, strictly less code, no clarity cost. Name what gets deleted and give the line delta. **Judgement calls**: a real tradeoff exists, stated in one line so it can be overruled. **Blocked by a documented rule**: a simplification you would otherwise propose, with the rule that forbids it named.
+  > Report under three headings. **Clear wins**: behaviour-identical, strictly less code, no clarity cost. Name what gets deleted and give the line delta. Start each finding with its tag: `delete` (dead or single-caller code), `stdlib` (standard library or framework ships it), `native` (the platform does it), or `shrink` (same logic, fewer lines). **Judgement calls**: a real tradeoff exists, stated in one line so it can be overruled. **Blocked by a documented rule**: a simplification you would otherwise propose, with the rule that forbids it named.
   >
   > Each finding is `file:line`, what goes, and why, in a line or two. No code snippets. "Nothing worth simplifying" is a valid and expected report on a clean diff. Padding the section is a failure.
   >
