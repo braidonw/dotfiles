@@ -2,12 +2,16 @@
 
 Issues and specs for this repo live in Linear, team `<team>`. Issue identifiers look like `<TEAMKEY>-123`. Branch names of the form `<user>/<teamkey>-123-<slug>` refer to that issue.
 
+## Access
+
+Follow `~/.agents/skills/setup-braidon-skills/linear-access.md` for tool selection, authentication, reads, and writes.
+
 ## Conventions
 
-- **Create**: create the issue with the connector, setting the title, the description as markdown, the team from this file, the state `Backlog`, and no assignee. Choose the project per the rule below.
-- **Read**: fetch the issue by identifier with the connector, including its comments and its blocking relations.
-- **List**: list issues with the connector, filtered by team, state, parent, label, or query as needed.
-- **Comment**: add a comment to the issue with the connector.
+- **Create**: create the issue, setting the title, the description as markdown, the team from this file, the state `Backlog`, and no assignee. Choose the project per the rule below.
+- **Read**: fetch the issue by identifier, including its comments and its blocking relations.
+- **List**: list issues, filtered by team, state, parent, label, or query as needed.
+- **Comment**: add a comment to the issue.
 - **State changes**: only what a skill explicitly asks for. Starting work on an issue moves it to `In Progress` and assigns it to me (this is the standing rule in the global agent instructions file). Never move an issue further than asked.
 - **Labels**: apply triage labels only if a triage labels mapping file exists alongside this one. Otherwise skip the `ready-for-agent` step entirely; a fully specified issue sitting in Backlog is the agent-ready signal. Never create labels other than `wayfinder:map`.
 
@@ -15,7 +19,7 @@ Issues and specs for this repo live in Linear, team `<team>`. Issue identifiers 
 
 1. **Inherit**. Tickets broken out of a spec issue take that issue's project. Wayfinder children take the map's project.
 2. **Infer**. If the current branch or the conversation names a Linear issue, use that issue's project.
-3. **Ask**. Otherwise list the team's active projects with the connector and ask the user to pick one or say none. Never pick silently and never store a default project in this file.
+3. **Ask**. Otherwise list the team's active projects and ask the user to pick one or say none. Never pick silently and never store a default project in this file.
 
 ## When a skill says "publish to the issue tracker"
 

@@ -1,13 +1,13 @@
 ---
 name: stacked-delivery
-description: "Workflow for large pieces of work (anticipated diff roughly 1,000+ LOC, or multi-session tasks): build everything on a single wip/ branch, run the code-review skill from a fresh context and fix findings until a clean pass, then split the result into a stack of ~1,000-LOC branches that each pass CI independently, and hand over a description document for the user to create the PRs from. Use this at the START of any large work item (to set up the wip branch) and again at DELIVERY time (review loop + split). Also triggers when the user says 'stacked PRs', 'split this branch/PR up', 'wip branch workflow', or asks to make a big diff reviewable. Do NOT use for ordinary small-to-medium tasks that fit in one reviewable PR — those follow the normal workflow. NEVER pushes or creates PRs; the user does that themselves."
+description: "Workflow for large pieces of work (anticipated diff roughly 15+ changed files or 1,500+ LOC, or multi-session tasks): build everything on a single wip/ branch, run the code-review skill from a fresh context and fix findings until a clean pass, then split the result into a stack of branches of ~10 changed files each that each pass CI independently, and hand over a description document for the user to create the PRs from. Use this at the START of any large work item (to set up the wip branch) and again at DELIVERY time (review loop + split). Also triggers when the user says 'stacked PRs', 'split this branch/PR up', 'wip branch workflow', or asks to make a big diff reviewable. Do NOT use for ordinary small-to-medium tasks that fit in one reviewable PR — those follow the normal workflow. NEVER pushes or creates PRs; the user does that themselves."
 ---
 
 # Stacked delivery: wip branch -> review loop -> stacked branches
 
 The goal is reviewability: a large work item is built in one place, made
 correct via independent review, then re-cut into a stack of branches a human
-can actually review (~1,000 LOC each). Nothing is ever pushed and no PRs are
+can actually review (~10 changed files each). Nothing is ever pushed and no PRs are
 created — the user reviews everything locally and creates PRs themselves.
 
 ## Phase A — Build on a single wip branch
@@ -45,11 +45,20 @@ can overrule.
 Only after a clean review pass. Keep the wip branch untouched as the
 reference (never delete it; the split is validated against it).
 
-**Sizing**: ~1,000 LOC of diff per branch is the target, not a hard rule.
-Logical cohesion wins: a 1,400-LOC branch that is one coherent layer beats
-two 700-LOC branches that split a concept in half. If the whole work item is
-under ~1,200 LOC, skip the split — one branch is fine; say so and stop after
-Phase D's description doc.
+**Sizing**: changed file count is the primary bound, because a reviewer feels
+the number of places they have to hold in their head more than the number of
+lines. ~10 changed files per branch is the target, stretching to ~15 when
+logical cohesion demands it. ~1,500 LOC of diff is the secondary bound; treat
+it as a sanity check on the file count rather than a target of its own.
+
+Neither is a hard rule, and logical cohesion wins over both: a 1,900-LOC branch
+that is one coherent layer beats two 950-LOC branches that split a concept in
+half. When the two bounds disagree, follow the file count. A branch of 8 files
+and 1,800 lines is usually fine, while one of 25 small files is a long scroll
+however few lines it carries.
+
+If the whole work item is under ~15 files, skip the split. One branch is fine;
+say so and stop after Phase D's description doc.
 
 **Ordering**: each branch must build and pass CI on its own, so order by
 dependency. The natural layering here is usually:

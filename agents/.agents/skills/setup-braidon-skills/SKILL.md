@@ -1,7 +1,6 @@
 ---
 name: setup-braidon-skills
 description: "Configure this repo for the engineering skills: set up its issue tracker, docs location, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills."
-disable-model-invocation: true
 ---
 
 # Setup Braidon's Skills
@@ -39,13 +38,13 @@ Lead each section with the recommended answer so the user can accept it in a wor
 
 **Section A: Issue tracker.**
 
-> Explainer: The "issue tracker" is where issues live for this repo. Skills like `to-tickets`, `triage`, and `to-spec` read from and write to it. They need to know whether to call `gh issue create`, create a Linear issue through the connector, write a markdown file under `.scratch/`, or follow some other workflow you describe. Pick the place you actually track work for this repo.
+> Explainer: The "issue tracker" is where issues live for this repo. Skills like `to-tickets`, `triage`, and `to-spec` read from and write to it. They need to know whether to call `gh issue create`, create a Linear issue, write a markdown file under `.scratch/`, or follow some other workflow you describe. Pick the place you actually track work for this repo.
 
 Default posture: these skills were designed for GitHub. If a `git remote` points at GitHub, propose that. If a `git remote` points at GitLab (`gitlab.com` or a self-hosted host), propose GitLab. Offer Linear whenever the user tracks work outside the forge, regardless of what the remote points at. Otherwise (or if the user prefers), offer:
 
 - **GitHub**: issues live in the repo's GitHub Issues (uses the `gh` CLI)
 - **GitLab**: issues live in the repo's GitLab Issues (uses the [`glab`](https://gitlab.com/gitlab-org/cli) CLI)
-- **Linear**: issues live in Linear, via the Linear MCP connector. Once the user picks Linear, ask which team, listing the available teams via the connector. When writing the Linear template, replace `<team>` with the team name and `<TEAMKEY>` and `<teamkey>` with the team's issue key.
+- **Linear**: issues live in Linear. Prefer the standard Linear MCP tools and use the Linear CLI when they are unavailable. Follow [linear-access.md](./linear-access.md). Once the user picks Linear, ask which team and list the available teams. When writing the Linear template, replace `<team>` with the team name and `<TEAMKEY>` and `<teamkey>` with the team's issue key.
 - **Local markdown**: issues live as files under `.scratch/<feature>/` in this repo (good for solo projects or repos without a remote)
 - **Other** (Jira, etc.): ask the user to describe the workflow in one paragraph; the skill will record it as freeform prose
 

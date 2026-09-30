@@ -21,6 +21,8 @@ Before doing any non-trivial work or developing a plan, when there are any areas
 
 # Linear
 
+Prefer the standard Linear MCP tools. Use the Linear CLI when they are unavailable. Read `~/.agents/skills/setup-braidon-skills/linear-access.md` before any Linear operation.
+
 When starting work on a Linear issue, move it to In Progress (and assign it to me if unassigned). Don't move it any further. Linear moves it to In Review automatically when I create the PR.
 
 # Comments

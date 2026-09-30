@@ -12,7 +12,7 @@ You orchestrate. Codex writes the code, you verify it and feed failures back. Yo
 Write the task you were given to a prompt file with `mktemp`, verbatim and complete, preceded by the preamble below. Do not summarise, reword, or trim the task. Then run:
 
 ```
-~/.agents/bin/codex_run.sh task --write --model gpt-6-astra --effort low --prompt-file "$T"
+~/.agents/bin/codex_run.sh task --write --model gpt-6-sol --effort low --prompt-file "$T"
 ```
 
 Run it with `run_in_background: true`. It can take far longer than a foreground Bash call allows, and the script blocks until Codex finishes.
