@@ -35,15 +35,7 @@ Keep commit messages short: a one-line subject (~50-72 chars, imperative mood), 
 
 # PR descriptions
 
-Keep them short. A ticket reference on its own line when there is one, then three parts:
-
-1. One or two sentences on what the change is and why it was needed. Lead with the problem, not the diff.
-2. A few brief bullets under a `What changed:` label, one line each. Describe the change in plain terms with no file paths, module names, function names, or line numbers. The diff already carries that detail, and prose that duplicates it goes stale.
-3. One or two sentences under a `Notes:` label for what the reviewer needs. Where to start reviewing, known follow-ups, anything deliberately left out of scope.
-
-Never put backticks around a file, module, or function name in a PR body. No test-plan sections, no exhaustive change lists, no attribution footers.
-
-Depth belongs in the review conversation, not the description. If something genuinely needs a paragraph of mechanism to review safely, say so in the notes and let the reviewer ask.
+Whenever you write a PR description for me, load the `pr-description` skill and follow its template.
 
 # Worktrees
 

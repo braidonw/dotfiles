@@ -102,12 +102,13 @@ the ledger is the record.
 Write a markdown doc and give both the file path and its full text in the
 final message. It contains:
 
-1. **Overall description** — PR-body-quality prose describing the whole
-   work item: what it does, why, key design decisions, anything reviewers
-   should know. This doubles as the description for the stack's anchor PR.
-2. **Per-branch section** — for each branch in order: branch name, a
-   suggested PR title, a summary of what it contains and why it's a
-   coherent unit, its base branch, and how it was verified.
+1. **Overall description**: the stack's anchor PR description, written
+   with the `pr-description` skill, covering the whole work item and its
+   key design decisions.
+2. **Per-branch section**: for each branch in order, branch name, a
+   suggested PR title, its base branch, how it was verified, and a PR
+   description written with the `pr-description` skill that says why the
+   branch is a coherent unit.
 3. **Scaffold-test ledger** — from Phase C, or "none".
 4. **Review residue**. Findings that were rejected during
    triage (with the one-line reason), so the user can overrule.
