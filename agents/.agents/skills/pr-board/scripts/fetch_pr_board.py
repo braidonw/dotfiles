@@ -4,8 +4,8 @@
 Emits the user's own open PRs (with review, check and unresolved-thread
 state), the stacked-branch chain graph reconstructed from base/head branch
 names, PRs awaiting the user's review (requested of them directly or of a
-team they belong to), and local branches stacked on an open PR that have no
-PR of their own.
+team they belong to), open PRs from allowlisted dependency bots, and local
+branches stacked on an open PR that have no PR of their own.
 
 Read-only. This script never merges, pushes, comments, retargets a base, or
 otherwise mutates anything on GitHub or in git. Every `gh` and `git` call it
@@ -20,15 +20,18 @@ Usage:
     fetch_pr_board.py --no-team-review-queue
     fetch_pr_board.py --no-review-queue
     fetch_pr_board.py --no-local-branches
+    fetch_pr_board.py --bot-author my-deps-bot  # extends the dependency bot allowlist
+    fetch_pr_board.py --no-bot-prs
     fetch_pr_board.py --pretty
 """
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 DEFAULT_BOTS = {
     "cubic-dev-ai",
@@ -43,15 +46,20 @@ DEFAULT_BOTS = {
     "netlify",
 }
 
+DEPENDENCY_BOTS = {"dependabot", "renovate"}
+
 FAILING_CONCLUSIONS = {
     "FAILURE",
     "TIMED_OUT",
     "CANCELLED",
     "ACTION_REQUIRED",
     "STARTUP_FAILURE",
+    "STALE",
 }
 FAILING_STATES = {"ERROR", "FAILURE"}
-PENDING_STATUSES = {"IN_PROGRESS", "QUEUED"}
+PENDING_STATUSES = {"QUEUED", "IN_PROGRESS", "WAITING", "PENDING", "REQUESTED"}
+PENDING_STATES = {"PENDING", "EXPECTED"}
+TRUSTED_ASSOCIATIONS = {"OWNER", "MEMBER", "COLLABORATOR"}
 
 GH_TIMEOUT_SECONDS = 60
 GIT_TIMEOUT_SECONDS = 15
@@ -223,7 +231,7 @@ def is_bot(login, author=None, bots=DEFAULT_BOTS):
 PR_LIST_FIELDS = (
     "number,title,url,headRefName,baseRefName,headRefOid,isDraft,reviewDecision,"
     "mergeable,mergeStateStatus,additions,deletions,changedFiles,createdAt,"
-    "updatedAt,reviews,statusCheckRollup"
+    "updatedAt,reviews,statusCheckRollup,author,latestReviews"
 )
 
 
@@ -370,7 +378,8 @@ def fetch_unresolved_threads(owner, name, numbers, bots, warnings):
 
 REVIEW_QUEUE_FIELDS = (
     "number,title,url,author,isDraft,createdAt,updatedAt,additions,deletions,"
-    "changedFiles,reviewDecision,reviews"
+    "changedFiles,reviewDecision,reviews,latestReviews,mergeable,"
+    "mergeStateStatus,statusCheckRollup"
 )
 
 
@@ -422,8 +431,98 @@ def fetch_review_queue(repo, limit, bots, viewer, teams, warnings):
 
     kept = sorted(merged.values(), key=lambda p: p["updatedAt"])
     for pr in kept:
+        pr["never_reviewed"] = never_reviewed(pr, bots)
         pr["my_last_review"] = viewer_last_review(pr.pop("reviews", []), viewer)
     return kept
+
+
+BOT_PR_FIELDS = (
+    "number,title,url,author,createdAt,isDraft,mergeable,mergeStateStatus,"
+    "statusCheckRollup,labels,body"
+)
+MAJOR_WORD = re.compile(r"\bmajor\b", re.IGNORECASE)
+VERSION_PAIRS = (
+    re.compile(r"\bfrom\s+v?(\d+)\S*\s+to\s+v?(\d+)", re.IGNORECASE),
+    re.compile(r"\bv?(\d+)\S*\s*(?:->|\u2192)\s*v?(\d+)"),
+    re.compile(r"\bv(\d+)\S*\s+to\s+v(\d+)", re.IGNORECASE),
+)
+# Renovate's change table: `^5.7.2` -> `^7.0.0`
+BODY_VERSION_PAIR = re.compile(r"`([^`]+)`\s*(?:->|\u2192)\s*`([^`]+)`")
+LEADING_MAJOR = re.compile(r"^[^\d]*(\d+)")
+HEX_DIGEST = re.compile(r"(?:sha256:)?[0-9a-f]{7,}", re.IGNORECASE)
+
+
+def fetch_bot_prs(repo, limit, bot_authors, warnings):
+    """Open PRs from allowlisted dependency bots, oldest first.
+
+    One unfiltered list call filtered here, because a search `author:`
+    qualifier needs the exact app/ or [bot] spelling of each login.
+    """
+    out = gh(
+        [
+            "pr", "list", "--repo", repo, "--state", "open",
+            "--limit", str(limit), "--json", BOT_PR_FIELDS,
+        ]
+    )
+    prs = json.loads(out)
+    if len(prs) >= limit:
+        warnings.append(
+            f"bot PR scan hit the {limit} open PR limit; older bot PRs may be missing"
+        )
+    return sorted(
+        (pr for pr in prs if is_bot_author(pr.get("author") or {}, bot_authors)),
+        key=lambda p: p["createdAt"],
+    )
+
+
+def is_bot_author(author, bot_authors):
+    """Allowlisted bot, including self-hosted apps named like `<org>-renovate`."""
+    login = normalise_login(author.get("login"))
+    if login in bot_authors:
+        return True
+    return bool(author.get("is_bot")) and any(login.endswith(f"-{b}") for b in bot_authors)
+
+
+def major_bump(title, labels, body):
+    if MAJOR_WORD.search(title) or any(MAJOR_WORD.search(label) for label in labels):
+        return True
+    majors = [
+        (LEADING_MAJOR.match(a), LEADING_MAJOR.match(b))
+        for a, b in BODY_VERSION_PAIR.findall(body or "")
+        if not (HEX_DIGEST.fullmatch(a) or HEX_DIGEST.fullmatch(b))
+    ]
+    majors = [(a, b) for a, b in majors if a and b]
+    if majors:
+        return any(int(a.group(1)) != int(b.group(1)) for a, b in majors)
+    for pattern in VERSION_PAIRS:
+        match = pattern.search(title)
+        if match:
+            return int(match.group(1)) != int(match.group(2))
+    return None
+
+
+def age_days(created_at, now):
+    created = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+    return (now - created).days
+
+
+def build_bot_pr_record(pr, now):
+    ci = ci_state(pr["statusCheckRollup"] or [])
+    labels = [label["name"] for label in pr.get("labels") or []]
+    return {
+        "number": pr["number"],
+        "title": pr["title"],
+        "url": pr["url"],
+        "author": normalise_login((pr.get("author") or {}).get("login")),
+        "created_at": pr["createdAt"],
+        "age_days": age_days(pr["createdAt"], now),
+        "is_draft": pr["isDraft"],
+        "mergeable": pr["mergeable"],
+        "merge_state_status": pr["mergeStateStatus"],
+        "ci": ci,
+        "ready": merge_ready(pr, ci),
+        "major_bump": major_bump(pr["title"], labels, pr.get("body")),
+    }
 
 
 def viewer_last_review(reviews, viewer):
@@ -474,15 +573,73 @@ def normalise_check(entry):
 
 
 def check_is_failing(entry):
-    _, conclusion, _, _ = normalise_check(entry)
-    return conclusion in FAILING_CONCLUSIONS or conclusion in FAILING_STATES
+    if entry.get("__typename") == "StatusContext":
+        return entry.get("state") in FAILING_STATES
+    return entry.get("conclusion") in FAILING_CONCLUSIONS
 
 
 def check_is_pending(entry):
-    _, conclusion, status, _ = normalise_check(entry)
-    if status:
-        return status in PENDING_STATUSES
-    return conclusion == "PENDING"
+    if entry.get("__typename") == "StatusContext":
+        return entry.get("state") in PENDING_STATES
+    return entry.get("status") in PENDING_STATUSES
+
+
+def ci_state(checks):
+    if not checks:
+        return "none"
+    if any(check_is_failing(c) for c in checks):
+        return "failing"
+    if any(check_is_pending(c) for c in checks):
+        return "pending"
+    return "passing"
+
+
+def merge_ready(pr, ci):
+    return (
+        not pr["isDraft"]
+        and pr["mergeable"] == "MERGEABLE"
+        and pr["mergeStateStatus"] == "CLEAN"
+        and ci == "passing"
+    )
+
+
+def normalise_login(login):
+    lower = (login or "").lower()
+    if lower.startswith("app/"):
+        lower = lower[len("app/"):]
+    if lower.endswith("[bot]"):
+        lower = lower[:-len("[bot]")]
+    return lower
+
+
+def human_approvers(pr, bots):
+    """Trusted humans whose latest review approves, excluding the PR author.
+
+    reviewDecision is empty on repos without a required-review rule, so it
+    cannot say whether anyone approved.
+    """
+    pr_author = (pr.get("author") or {}).get("login")
+    approvers = []
+    for r in pr.get("latestReviews") or []:
+        login = (r.get("author") or {}).get("login")
+        if (
+            r.get("state") == "APPROVED"
+            and r.get("authorAssociation") in TRUSTED_ASSOCIATIONS
+            and login != pr_author
+            and not is_bot(login, r.get("author"), bots)
+        ):
+            approvers.append(login)
+    return sorted(approvers)
+
+
+def never_reviewed(pr, bots):
+    pr_author = (pr.get("author") or {}).get("login")
+    return not any(
+        r.get("state") in ("APPROVED", "CHANGES_REQUESTED")
+        and (r.get("author") or {}).get("login") != pr_author
+        and not is_bot((r.get("author") or {}).get("login"), r.get("author"), bots)
+        for r in pr.get("reviews") or []
+    )
 
 
 def build_pr_record(pr, bots, thread_stats, trunk_rules=None):
@@ -507,6 +664,8 @@ def build_pr_record(pr, bots, thread_stats, trunk_rules=None):
                 }
             )
     pending_checks = sum(1 for c in checks if check_is_pending(c))
+    ci = ci_state(checks)
+    approvers = human_approvers(pr, bots)
 
     reasons = []
     if pr["isDraft"]:
@@ -514,7 +673,7 @@ def build_pr_record(pr, bots, thread_stats, trunk_rules=None):
     if pr["reviewDecision"] == "CHANGES_REQUESTED":
         who = ", ".join(sorted(changes_requested_by)) or "a reviewer"
         reasons.append(f"changes requested by {who}")
-    elif pr["reviewDecision"] != "APPROVED":
+    elif pr["reviewDecision"] != "APPROVED" and (pr["reviewDecision"] or not approvers):
         reasons.append("awaiting review")
     if pr["mergeable"] == "CONFLICTING":
         reasons.append("conflicts with base")
@@ -537,6 +696,14 @@ def build_pr_record(pr, bots, thread_stats, trunk_rules=None):
         reasons.append(f"{open_threads} unresolved review thread{plural}")
     elif pr["mergeStateStatus"] in ("BLOCKED", "DIRTY"):
         reasons.append(f"merge state {pr['mergeStateStatus'].lower()}")
+    if pr["mergeable"] == "UNKNOWN":
+        reasons.append("mergeability unknown")
+    elif pr["mergeStateStatus"] not in ("CLEAN", "BEHIND", "BLOCKED", "DIRTY", "DRAFT"):
+        reasons.append(f"merge state {pr['mergeStateStatus'].lower()}")
+    if ci == "pending":
+        reasons.append("checks pending")
+    elif ci == "none":
+        reasons.append("no CI checks")
 
     stats = thread_stats.get(
         pr["number"],
@@ -569,9 +736,11 @@ def build_pr_record(pr, bots, thread_stats, trunk_rules=None):
         "latest_human_review_by_author": latest_by_author,
         "approved_by": approved_by,
         "changes_requested_by": changes_requested_by,
+        "human_approvers": approvers,
         "failing_checks": failing_checks,
         "pending_checks": pending_checks,
-        "ready": not reasons,
+        "ci": ci,
+        "ready": not reasons and merge_ready(pr, ci),
         "blocked_reasons": reasons,
         **stats,
     }
@@ -772,6 +941,11 @@ def parse_args():
         help="only count review requests addressed to the viewer directly",
     )
     parser.add_argument("--no-local-branches", action="store_true", help="skip the local git branch scan")
+    parser.add_argument(
+        "--bot-author", action="append", default=[], dest="bot_authors",
+        help="additional dependency bot login whose open PRs are listed (repeatable)",
+    )
+    parser.add_argument("--no-bot-prs", action="store_true", help="skip the dependency bot PR scan")
     parser.add_argument("--pretty", action="store_true", help="pretty-print the JSON output")
     return parser.parse_args()
 
@@ -836,23 +1010,44 @@ def main():
         queue_raw = fetch_review_queue(
             repo, opts.limit, bots, viewer, review_teams, warnings
         )
-        review_queue = [
-            {
-                "number": pr["number"],
-                "title": pr["title"],
-                "url": pr["url"],
-                "author": (pr.get("author") or {}).get("login"),
-                "created_at": pr["createdAt"],
-                "updated_at": pr["updatedAt"],
-                "additions": pr["additions"],
-                "deletions": pr["deletions"],
-                "changed_files": pr["changedFiles"],
-                "review_decision": pr["reviewDecision"],
-                "requested_via": pr["requested_via"],
-                "my_last_review": pr["my_last_review"],
-            }
-            for pr in queue_raw
-        ]
+        resolve_unknown_mergeability(repo, queue_raw, warnings)
+        review_queue = []
+        for pr in queue_raw:
+            ci = ci_state(pr["statusCheckRollup"] or [])
+            review_queue.append(
+                {
+                    "number": pr["number"],
+                    "title": pr["title"],
+                    "url": pr["url"],
+                    "author": (pr.get("author") or {}).get("login"),
+                    "created_at": pr["createdAt"],
+                    "updated_at": pr["updatedAt"],
+                    "additions": pr["additions"],
+                    "deletions": pr["deletions"],
+                    "changed_files": pr["changedFiles"],
+                    "review_decision": pr["reviewDecision"],
+                    "requested_via": pr["requested_via"],
+                    "my_last_review": pr["my_last_review"],
+                    "mergeable": pr["mergeable"],
+                    "merge_state_status": pr["mergeStateStatus"],
+                    "ci": ci,
+                    "ready": merge_ready(pr, ci),
+                    "human_approvers": human_approvers(pr, bots),
+                    "never_reviewed": pr["never_reviewed"],
+                }
+            )
+
+    bot_prs = []
+    if not opts.no_bot_prs:
+        bot_authors = DEPENDENCY_BOTS | {normalise_login(b) for b in opts.bot_authors}
+        try:
+            bot_raw = fetch_bot_prs(repo, opts.limit, bot_authors, warnings)
+            resolve_unknown_mergeability(repo, bot_raw, warnings)
+        except GhError as e:
+            warnings.append(f"bot PR scan failed: {e}")
+            bot_raw = []
+        now = datetime.now(timezone.utc)
+        bot_prs = [build_bot_pr_record(pr, now) for pr in bot_raw]
 
     local_branches = []
     if not opts.no_local_branches:
@@ -868,6 +1063,7 @@ def main():
         "chains": chains,
         "review_teams": review_teams,
         "review_queue": review_queue,
+        "bot_prs": bot_prs,
         "local_stacked_branches": local_branches,
         "warnings": warnings,
     }
