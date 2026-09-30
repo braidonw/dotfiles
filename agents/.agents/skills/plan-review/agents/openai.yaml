@@ -1,0 +1,3 @@
+interface:
+  display_name: "Plan review"
+  short_description: "Critique a plan before any code is written"
