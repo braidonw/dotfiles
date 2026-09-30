@@ -67,6 +67,8 @@ If it is installed, ask exactly one question:
 
 The defaults are the five canonical roles, each label string equal to its name: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. On **yes**, write them as-is. Only if the user says no, usually because their tracker already uses other names (e.g. `bug:triage` for `needs-triage`), collect the overrides so `triage` applies existing labels instead of creating duplicates.
 
+For Linear, skip that question and use [triage-labels-linear.md](./triage-labels-linear.md) instead, which maps the roles onto workflow states and comment headings. List the team's labels and states, fill in the category labels (usually `Bug`, `Feature`, `Improvement`), and confirm the state names exist. If the team has no `Triage` state, tell the user to enable Triage in the team settings.
+
 **Section D: Domain docs.** Default to **single-context** (one glossary + one ADR directory at the domain docs root). This fits almost every repo; write it without asking.
 
 Offer **multi-context** (a root `CONTEXT-MAP.md` pointing to per-context `CONTEXT.md` files) only when exploration found monorepo signals. Then confirm which layout they want.
@@ -125,6 +127,7 @@ Then write the docs files using the seed templates in this skill folder as a sta
 - [issue-tracker-linear.md](./issue-tracker-linear.md): Linear issue tracker
 - [issue-tracker-local.md](./issue-tracker-local.md): local-markdown issue tracker
 - [triage-labels.md](./triage-labels.md): label mapping (only if `triage` is installed)
+- [triage-labels-linear.md](./triage-labels-linear.md): the same mapping for a Linear tracker, written as `triage-labels.md`
 - [domain.md](./domain.md): domain doc consumer rules + layout
 
 For "other" issue trackers, write the tracker file from scratch at the location chosen in Section B, using the user's description. This applies in both modes.

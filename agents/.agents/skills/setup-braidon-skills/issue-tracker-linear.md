@@ -13,7 +13,7 @@ Follow `~/.agents/skills/setup-braidon-skills/linear-access.md` for tool selecti
 - **List**: list issues, filtered by team, state, parent, label, or query as needed.
 - **Comment**: add a comment to the issue.
 - **State changes**: only what a skill explicitly asks for. Starting work on an issue moves it to `In Progress` and assigns it to me (this is the standing rule in the global agent instructions file). Never move an issue further than asked.
-- **Labels**: apply triage labels only if a triage labels mapping file exists alongside this one. Otherwise skip the `ready-for-agent` step entirely; a fully specified issue sitting in Backlog is the agent-ready signal. Never create labels other than `wayfinder:map`.
+- **Triage roles**: when a triage labels file exists alongside this one, it maps each role onto a state and comment heading. Without one, skip the `ready-for-agent` step entirely; a fully specified issue sitting in Backlog is the agent-ready signal. Never create labels other than `wayfinder:map`.
 
 ## Choosing a project
 

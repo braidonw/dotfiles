@@ -1,0 +1,5 @@
+interface:
+  display_name: "Triage"
+  short_description: "Move Linear issues through triage"
+policy:
+  allow_implicit_invocation: false
