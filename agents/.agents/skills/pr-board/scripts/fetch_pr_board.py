@@ -59,6 +59,8 @@ FAILING_CONCLUSIONS = {
 FAILING_STATES = {"ERROR", "FAILURE"}
 PENDING_STATUSES = {"QUEUED", "IN_PROGRESS", "WAITING", "PENDING", "REQUESTED"}
 PENDING_STATES = {"PENDING", "EXPECTED"}
+PASSING_CONCLUSIONS = {"SUCCESS", "NEUTRAL", "SKIPPED"}
+PASSING_STATES = {"SUCCESS"}
 TRUSTED_ASSOCIATIONS = {"OWNER", "MEMBER", "COLLABORATOR"}
 
 GH_TIMEOUT_SECONDS = 60
@@ -486,18 +488,19 @@ def is_bot_author(author, bot_authors):
 def major_bump(title, labels, body):
     if MAJOR_WORD.search(title) or any(MAJOR_WORD.search(label) for label in labels):
         return True
-    majors = [
+    body_pairs = [
         (LEADING_MAJOR.match(a), LEADING_MAJOR.match(b))
         for a, b in BODY_VERSION_PAIR.findall(body or "")
         if not (HEX_DIGEST.fullmatch(a) or HEX_DIGEST.fullmatch(b))
     ]
-    majors = [(a, b) for a, b in majors if a and b]
-    if majors:
-        return any(int(a.group(1)) != int(b.group(1)) for a, b in majors)
-    for pattern in VERSION_PAIRS:
-        match = pattern.search(title)
-        if match:
-            return int(match.group(1)) != int(match.group(2))
+    pairs = [(int(a.group(1)), int(b.group(1))) for a, b in body_pairs if a and b]
+    pairs += [
+        (int(m.group(1)), int(m.group(2)))
+        for m in (pattern.search(title) for pattern in VERSION_PAIRS)
+        if m
+    ]
+    if pairs:
+        return any(a != b for a, b in pairs)
     return None
 
 
@@ -584,6 +587,12 @@ def check_is_pending(entry):
     return entry.get("status") in PENDING_STATUSES
 
 
+def check_is_passing(entry):
+    if entry.get("__typename") == "StatusContext":
+        return entry.get("state") in PASSING_STATES
+    return entry.get("conclusion") in PASSING_CONCLUSIONS
+
+
 def ci_state(checks):
     if not checks:
         return "none"
@@ -591,6 +600,9 @@ def ci_state(checks):
         return "failing"
     if any(check_is_pending(c) for c in checks):
         return "pending"
+    unknown = [c for c in checks if not check_is_passing(c)]
+    if unknown:
+        raise ValueError(f"unrecognised check state: {unknown[0]}")
     return "passing"
 
 
@@ -818,6 +830,7 @@ def build_chains(pr_records, warnings):
             stranded_approved = [
                 number for number in path[bottleneck_pos + 1:]
                 if by_number[number]["review_decision"] == "APPROVED"
+                or by_number[number]["human_approvers"]
             ]
 
         chains.append(

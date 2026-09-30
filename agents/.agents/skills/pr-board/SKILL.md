@@ -77,10 +77,11 @@ typo before it is good news.
 - `ci` is `passing`, `failing`, `pending` or `none`. NEUTRAL and SKIPPED checks
   pass. `none` means the PR has no checks at all, which is a finding, not a
   pass.
-- `human_approvers` counts only approvals from someone with write access who is
-  not the author and not a bot. `reviewDecision` is empty on repos without a
-  required-review rule, so it both misses real approvals and cannot confirm
-  write access.
+- `human_approvers` counts only approvals from a repo owner, org member or
+  collaborator who is not the author and not a bot. That association is not
+  proof of write access. `reviewDecision` is empty on repos without a
+  required-review rule, so it misses real approvals there. Stranded approvals
+  count either signal.
 - `never_reviewed` on a review-queue row means nobody but the author has
   approved or requested changes.
 
