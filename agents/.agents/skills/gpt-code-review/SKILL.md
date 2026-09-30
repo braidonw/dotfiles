@@ -52,7 +52,8 @@ four and its absence never blocks the other three.
 ## Step 2: Triage the findings
 
 The script prints the review and ends with `REVIEW_SAVED: <path>`. Read the
-review, then verify each finding yourself before presenting it:
+review, load the `receiving-code-review` skill, then verify each finding
+yourself before presenting it:
 
 - Open the file at the cited line and read enough surrounding code to judge
   the claim. Check callers or tests when the claim depends on them.

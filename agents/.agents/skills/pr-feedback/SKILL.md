@@ -96,6 +96,8 @@ codebase conventions win over a reviewer's general preference.
 
 ### 4. Evaluate each comment
 
+Load the `receiving-code-review` skill and apply its verification steps to every comment. The verdicts below are how this skill reports the result.
+
 Judge every comment on its merits, regardless of who left it. A bot or a senior
 reviewer can both be wrong, and "the reviewer said so" is not a reason to
 recommend a change the author shouldn't make. Assign each one a verdict:
