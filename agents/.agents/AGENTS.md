@@ -5,15 +5,44 @@ The main session runs on the strongest model available and should spend its effo
 - **`chore`** (cheapest and fastest setting, low effort). Mechanical, fully-specified work: renames, repetitive multi-site edits, fixture updates, formatting.
 - **`implement`** (Opus 5, medium effort). Standard implementation of an agreed plan: write the code and tests, run them, report back. This is the default for most coding work.
 - **`implement-hard`** (Opus 5 orchestrating, Codex implementing). The second-engine tier, not a heavier one. Reach for it when a different model's strengths suit the job, not when the work simply needs more grinding. Opus hands the plan to Codex, runs the tests itself, and feeds real failures back into the same Codex thread for up to two rounds. It implements natively only when Codex is unavailable.
-- **`review`** (strongest setting, high effort). Fresh-context reviewer. Runs the `code-review` skill against a fixed point and reports back. Read-only.
+- **`review`** (strongest setting, high effort). Fresh-context reviewer. Runs the `code-review` skill against a fixed point, or the `plan-review` skill against a plan, and reports back. Read-only.
 
 Rules of thumb:
 - Plan first in the main session (use the harness's plan mode where it has one), then hand the agreed plan to the right agent with enough context to execute without guessing: relevant file paths, decisions already made, and how to verify.
+- Before delegating a plan that touches 8 or more files, or adds a new module, table, worker, pipeline or external integration, spawn a `review` agent to run the `plan-review` skill on it. Fold the triaged findings back into the plan before implementation starts.
 - Do trivial edits (a one-file tweak, a quick fix mid-conversation) directly in the main session. Delegation overhead isn't worth it there.
 - Before delegating to `implement` or `implement-hard`, record the fixed point with `git rev-parse HEAD`. When the agent reports back, spawn a `review` agent in a new session with that fixed point and the plan or spec location. Never run the review inside the implementer's context or inline in the main session. `chore` work skips this.
-- Triage the review in the main session: fix real findings (directly if trivial, otherwise re-delegate), dismiss the rest with a one-line reason, and include the outcome in the report to me.
+- Triage every review in the main session with the `receiving-code-review` skill: fix real findings (directly if trivial, otherwise re-delegate), dismiss the rest with a one-line reason, and include the outcome in the report to me.
 - Review the agent's report and diff in the main session before declaring work done; final judgement stays with the main session. If an agent reports a plan conflict, resolve it in the main session and re-delegate.
 - Independent tasks from one plan can go to multiple agents in parallel.
+
+# Pragmatism
+
+Complexity is the enemy. Build the smallest thing that solves the real problem and say no to the rest. An 80/20 solution delivered beats a complete one designed.
+
+Before writing code, climb this ladder and stop at the first rung that holds:
+
+1. Does this need to exist at all? If the need is speculative, skip it and say so in one line.
+2. Does this codebase already do it? Reuse the helper, context function or pattern that is already here.
+3. Does the standard library, the framework or the platform do it? A database constraint beats app code, and CSS beats JavaScript.
+4. Does an installed dependency do it? Never add a dependency for what a few lines can do.
+5. Only then, write the minimum code that works.
+
+The ladder shortens the solution, never the reading. Understand the problem and trace the real flow first. A bug fix goes at the root cause every caller routes through, not only on the path the report names.
+
+- Wait for cut-points before factoring. Duplication is cheaper than the wrong abstraction, and a seam with one implementation is not a seam yet.
+- Keep behaviour next to the thing that does it.
+- Boring over clever. Someone tired will read this code at 3am.
+- Keep refactors small and separate from behaviour changes.
+- Understand why code exists before removing it. `git log` on its lines is the cheap check.
+- Never simplify away validation at trust boundaries, error handling that prevents data loss, security, accessibility, or anything I explicitly asked for.
+- When you ship a smaller version of a larger request, say in one line what you skipped and when it would be worth adding.
+
+# Evidence before claims
+
+Before saying something is done, fixed or passing, run the command that proves it in this turn and cite the result. Tests passing means test output with 0 failures. A bug fixed means the original symptom rechecked, not the code changed. A build passing means its exit code, not a clean lint. A requirement met means the plan re-read and checked item by item.
+
+After a sub-agent reports success, read its diff before relaying the claim. When a claim goes beyond what you ran, say it is unverified.
 
 # Planning
 
@@ -105,7 +134,6 @@ Before sending, delete the first sentence if it announces what you are about to 
 
 # Working preferences
 
-Avoid building any unnecessary features or functionality.
 Ask me if you want me to clarify any of my instructions or if you want me to choose from various architectures or designs.
 Please don't write any Demo or example code for anything you create for me.
 
