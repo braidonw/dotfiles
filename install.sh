@@ -13,7 +13,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-packages=(agents fish git gh ghostty lazygit linearmouse tidewave zed claude codex pi zsh ssh)
+packages=(agents fish git gh ghostty herdr lazygit linearmouse nvim tidewave zed claude codex pi zsh ssh)
 
 if [ "${1:-}" = --bootstrap ]; then
     if ! command -v brew >/dev/null 2>&1; then
@@ -29,6 +29,9 @@ if ! command -v stow >/dev/null 2>&1; then
     echo "(or re-run as: ./install.sh --bootstrap)"
     exit 1
 fi
+
+# herdr writes sockets and logs beside its config, so stow must not fold this dir into the repo.
+mkdir -p "$HOME/.config/herdr"
 
 for pkg in "${packages[@]}"; do
     if [ ! -d "$pkg" ]; then
