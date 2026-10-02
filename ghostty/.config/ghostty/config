@@ -10,3 +10,15 @@ minimum-contrast = 1.4
 # theme = Everforest Dark Hard
 # theme = Monokai Pro
 # theme = Gruvbox Dark
+
+window-padding-color = extend
+macos-option-as-alt = left
+
+background-opacity = 0.95
+background-blur-radius = 20
+macos-non-native-fullscreen = visible-menu
+macos-option-as-alt = left
+mouse-hide-while-typing = true
+
+font-feature = ss05
+font-feature = ss06
