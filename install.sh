@@ -45,6 +45,15 @@ for pkg in "${packages[@]}"; do
         --ignore='.*\.example' "$pkg"
 done
 
+# herdr owns its agent hook scripts, so install them rather than track them.
+if command -v herdr >/dev/null 2>&1; then
+    for agent in claude codex pi; do
+        herdr integration install "$agent"
+    done
+else
+    echo "skip   herdr integrations (herdr not installed)"
+fi
+
 # ~/.gitconfig includes ~/.gitconfig.local. Git ignores a missing include
 # silently and falls back to user@hostname, so seed it rather than let commits
 # go out with an identity GitHub cannot link to a profile.
