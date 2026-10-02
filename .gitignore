@@ -12,6 +12,7 @@ claude/.claude/*
 !claude/.claude/commands/
 !claude/.claude/skills/
 claude/.claude/skills/*-workspace/
+claude/.claude/skills/synced/
 
 # Ignore everything under agents/.agents/ except what we deliberately track
 agents/.agents/*
