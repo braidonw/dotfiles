@@ -178,6 +178,8 @@ exactly once, or is dropped with a one-line reason. A corroborated finding
 collapses into a single entry carrying the strongest evidence from each axis
 that raised it.
 
+**Publish to Hunk** once the list is complete. Every inline comment goes through the `hunk-notes` skill, with `baseRefName` as the fixed point. Each summary is `<severity>: <the comment's first sentence>`, with `hold` after the severity where you would hold the PR on it, and the rationale is the rest of the comment. Top-level comments stay in the chat list.
+
 Close with the caveats the user needs before posting in their own name: any axis
 that did not run (a failed or skipped Codex leaves every finding as one model's
 opinion), and what was read rather than executed.
@@ -192,6 +194,7 @@ anything.
 Finally, offer to put the worktree back where it was:
 `git checkout <recorded-branch>` (and `git stash pop` if you stashed in Step 2).
 Leave the worktree as you found it unless the user wants to keep exploring the PR.
+Hunk is watching this checkout, so restore it only once the user has finished with the notes.
 
 ## Notes
 

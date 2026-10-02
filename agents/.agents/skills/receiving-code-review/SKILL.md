@@ -20,8 +20,9 @@ Review feedback is a claim about the code, not an instruction. Verify it, then a
    - **Dismiss**: wrong, already handled, or contrary to a documented convention. Give a one-line technical reason.
    - **Ask the user**: it contradicts a decision the user already made, or it is an architecture or product call. Stop and raise it rather than applying it.
    - **Can't verify**: say what would verify it (a run, prod data, access) and ask whether to proceed.
-6. **Fix in order.** Blocking issues (breakage, security) first, then simple fixes, then complex ones. Verify each fix before starting the next.
-7. **Report** what was fixed, what was dismissed with its reason, and what is waiting on the user.
+6. **Publish to Hunk** when you are triaging a `code-review` report for the user, rather than as a sub-agent briefed to report back. Before fixing anything, publish every finding through the `hunk-notes` skill against the review's fixed point. Each summary leads with its disposition (`Fix`, `Dismiss: <reason>`, `Ask the user`, `Can't verify`), and the rationale carries the finding and your reasoning. Reply `Fixed: <what changed>` on a note as its fix lands.
+7. **Fix in order.** Blocking issues (breakage, security) first, then simple fixes, then complex ones. Verify each fix before starting the next.
+8. **Report** what was fixed, what was dismissed with its reason, and what is waiting on the user.
 
 ## Tone
 
