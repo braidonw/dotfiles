@@ -16,6 +16,16 @@ Rules of thumb:
 - Review the agent's report and diff in the main session before declaring work done; final judgement stays with the main session. If an agent reports a plan conflict, resolve it in the main session and re-delegate.
 - Independent tasks from one plan can go to multiple agents in parallel.
 
+# Advisor checkpoints
+
+Claude Code only. Fable is the advisor (`advisorModel`) and reads the whole conversation. Consult it at three checkpoints:
+
+- **Before a big plan**: once grilling has settled the requirements and the work meets the plan-review threshold above, ask whether the approach is right before writing the plan. Plan-review still runs on the written plan.
+- **Same error twice**: when a check fails with the same error after a fix attempt, consult it before the next attempt.
+- **Before done**: for work delegated to `implement` or `implement-hard`, consult it after triaging the review and before reporting done. Ask what the original request needed that the work missed.
+
+The checkpoints cover planned and delegated work. Trivial edits, `chore` work and questions skip them. When the advice changes the approach or finds a gap, say so in one line, including any advice you rejected and why.
+
 # Pragmatism
 
 Complexity is the enemy. Build the smallest thing that solves the real problem and say no to the rest. An 80/20 solution delivered beats a complete one designed.

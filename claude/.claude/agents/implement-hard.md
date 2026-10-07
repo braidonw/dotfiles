@@ -40,6 +40,8 @@ When verification fails, write the real output (not a paraphrase) to a new promp
 ~/.agents/bin/codex_run.sh task --write --resume --prompt-file "$T2"
 ```
 
+When the same failure survives a Codex round, consult the advisor. Put its diagnosis in your next Codex prompt, or in your report once the round limit is reached. If it says the plan is wrong, stop and report that back as a plan conflict.
+
 Stop after two Codex rounds. Past that the plan is usually wrong, which is the main session's call. Report the last failing output and say how many rounds you spent.
 
 ## Report
