@@ -6,12 +6,25 @@
     "defaultMode": "auto"
   },
   "model": "opus[1m]",
-  "advisorModel": "fable",
   "skillOverrides": {
     "tiger-style": "off",
     "domain-modeling": "off",
     "prototype": "off",
     "tdd": "off"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "^(startup|resume|clear|compact|fork)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '/Users/braidon/.claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
   },
   "statusLine": {
     "type": "command",
@@ -57,6 +70,7 @@
     }
   },
   "ultracode": false,
+  "advisorModel": "fable",
   "tui": "fullscreen",
   "voice": {
     "enabled": true,
@@ -68,5 +82,5 @@
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true,
-  "hooks": {"SessionStart":[{"matcher":"^(startup|resume|clear|compact|fork)$","hooks":[{"type":"command","command":"bash '/Users/braidon/.claude/hooks/herdr-agent-state.sh' session","timeout":10}]}]}
+  "switchModelsOnFlag": false
 }
