@@ -3,7 +3,8 @@ set -euo pipefail
 
 # Points a Hunk session at the working tree diffed against its merge-base with a fixed point.
 # Usage: hunk_session.sh <fixed-point>, run from inside the repo.
-# Reloads the one session open on this repo, or opens one in a herdr split beside the caller.
+# Reloads the one session open on this repo, or opens one in a herdr split beside the caller,
+# first closing any other Hunk pane in the caller's tab.
 #
 # Exit codes:
 #   0  session ready; last line is "HUNK_SESSION: <session-id>"
@@ -47,7 +48,20 @@ if [[ ${HERDR_ENV:-} != 1 ]]; then
   exit 6
 fi
 
+read -r self tab < <(herdr pane current | jq -r '.result.pane | "\(.pane_id) \(.tab_id)"')
+
+# A pane labelled hunk may have fallen back to a shell after Hunk exited
+herdr pane list | jq -r --arg tab "$tab" --arg self "$self" \
+  '.result.panes[] | select(.tab_id == $tab and .pane_id != $self) | "\(.pane_id)\t\(.label // "")"' |
+  while IFS=$'\t' read -r other label; do
+    if [[ $label == hunk ]] ||
+      herdr pane process-info --pane "$other" | jq -e 'any(.result.process_info.foreground_processes[]; .name == "hunk")' >/dev/null; then
+      herdr pane close "$other" >/dev/null
+    fi
+  done
+
 pane=$(herdr pane split --current --direction right --cwd "$PWD" --no-focus | jq -r '.result.pane.pane_id')
+herdr pane rename "$pane" hunk >/dev/null
 herdr pane run "$pane" "$command" >/dev/null
 
 for _ in $(seq 1 30); do
