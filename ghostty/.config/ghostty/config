@@ -1,15 +1,15 @@
-font-family = Berkeley Mono
-font-size = 14
+font-family = Berkeley Mono Condensed
+font-size = 15
 minimum-contrast = 1.4
 
 # theme = Melange Dark
-# theme = Catppuccin Mocha
+theme = Catppuccin Mocha
 # theme = Rose Pine
 # theme = Tomorrow Night
 # theme = Vesper
 # theme = Everforest Dark Hard
 # theme = Monokai Pro
-# theme = Gruvbox Dark
+# theme = Gruvbox Dark Hard
 
 window-padding-color = extend
 macos-option-as-alt = left
