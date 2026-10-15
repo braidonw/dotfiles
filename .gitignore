@@ -18,6 +18,7 @@ claude/.claude/skills/synced/
 agents/.agents/*
 !agents/.agents/AGENTS.md
 !agents/.agents/bin/
+!agents/.agents/writing/
 !agents/.agents/skills/
 agents/.agents/skills/*-workspace/
 
