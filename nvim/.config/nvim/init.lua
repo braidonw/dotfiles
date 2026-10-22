@@ -444,10 +444,11 @@ do
   -- change the command under that to load whatever the name of that colorscheme is.
   --
   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-  vim.pack.add { { src = gh 'catppuccin/nvim', name = 'catppuccin' } }
+  vim.pack.add { gh 'loctvl842/monokai-pro.nvim' }
+  require('monokai-pro').setup { filter = 'pro' }
 
   -- Load the colorscheme here.
-  vim.cmd.colorscheme 'catppuccin-mocha'
+  vim.cmd.colorscheme 'monokai-pro'
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
