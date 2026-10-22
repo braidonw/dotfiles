@@ -1,6 +1,6 @@
 ---
 name: review
-description: Fresh-context reviewer. Runs the code-review skill against a fixed point, or the plan-review skill against a plan, and reports the findings back. Use after an implement or implement-hard agent finishes, so the review never shares context with the implementer. Read-only; never edits code.
+description: Fresh-context reviewer. Runs the code-review skill against a fixed point, or the plan-review skill against a plan, and reports the findings back. Use after an implement agent finishes, so the review never shares context with the implementer. Read-only; never edits code.
 model: opus
 effort: high
 ---

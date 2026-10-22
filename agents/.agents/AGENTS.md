@@ -1,17 +1,18 @@
 # Model delegation workflow
 
-The main session runs on the strongest model available and should spend its effort on planning, evaluating tradeoffs, reviewing results, and making final decisions. Delegate execution to the four sub-agent roles instead of doing it inline. Each harness defines these roles under the same names (`~/.claude/agents/*.md` for Claude Code, `~/.codex/agents/*.toml` for Codex):
+The main session runs on the strongest model available and should spend its effort on planning, evaluating tradeoffs, reviewing results, and making final decisions. Delegate execution to the four sub-agent roles instead of doing it inline. Claude Code defines all four in `~/.claude/agents/*.md`. Codex is used for reviews only, so the Codex CLI defines just `review` in `~/.codex/agents/review.toml`. In a harness that lacks a role (Pi, or the Codex CLI for anything but `review`), do that work inline.
 
 - **`chore`** (cheapest and fastest setting, low effort). Mechanical, fully-specified work: renames, repetitive multi-site edits, fixture updates, formatting.
-- **`implement`** (Opus 5, medium effort). Standard implementation of an agreed plan: write the code and tests, run them, report back. This is the default for most coding work.
-- **`implement-hard`** (Opus 5 orchestrating, Codex implementing). The second-engine tier, not a heavier one. Reach for it when a different model's strengths suit the job, not when the work simply needs more grinding. Opus hands the plan to Codex, runs the tests itself, and feeds real failures back into the same Codex thread for up to two rounds. It implements natively only when Codex is unavailable.
+- **`implement`** (Opus 5.5, high effort). Implementation of an agreed plan: write the code and tests, run them, report back. This is the default for all coding work.
+- **`write`** (Fable 5.1, high effort). Drafts prose for others to read: PR descriptions, Linear issue bodies, docs and handovers. Returns the text and publishes nothing.
 - **`review`** (strongest setting, high effort). Fresh-context reviewer. Runs the `code-review` skill against a fixed point, or the `plan-review` skill against a plan, and reports back. Read-only.
 
 Rules of thumb:
 - Plan first in the main session (use the harness's plan mode where it has one), then hand the agreed plan to the right agent with enough context to execute without guessing: relevant file paths, decisions already made, and how to verify.
 - Before delegating a plan that touches 8 or more files, or adds a new module, table, worker, pipeline or external integration, spawn a `review` agent to run the `plan-review` skill on it. Fold the triaged findings back into the plan before implementation starts.
 - Do trivial edits (a one-file tweak, a quick fix mid-conversation) directly in the main session. Delegation overhead isn't worth it there.
-- Before delegating to `implement` or `implement-hard`, record the fixed point with `git rev-parse HEAD`. When the agent reports back, spawn a `review` agent in a new session with that fixed point and the plan or spec location. Never run the review inside the implementer's context or inline in the main session. `chore` work skips this.
+- In the main session, delegate PR descriptions, Linear issue bodies, docs and handovers to `write`, including the drafting steps inside `to-spec`, `to-tickets`, `triage` and `stacked-delivery`. Pass it the template and the facts. Check its draft, then do the file write or Linear call yourself.
+- Before delegating to `implement`, record the fixed point with `git rev-parse HEAD`. When the agent reports back, spawn a `review` agent in a new session with that fixed point and the plan or spec location. Never run the review inside the implementer's context or inline in the main session. `chore` work skips this.
 - Triage every review in the main session with the `receiving-code-review` skill: fix real findings (directly if trivial, otherwise re-delegate), dismiss the rest with a one-line reason, and include the outcome in the report to me.
 - Review the agent's report and diff in the main session before declaring work done; final judgement stays with the main session. If an agent reports a plan conflict, resolve it in the main session and re-delegate.
 - Independent tasks from one plan can go to multiple agents in parallel.
@@ -22,7 +23,7 @@ Claude Code only. Fable is the advisor (`advisorModel`) and reads the whole conv
 
 - **Before a big plan**: once grilling has settled the requirements and the work meets the plan-review threshold above, ask whether the approach is right before writing the plan. Plan-review still runs on the written plan.
 - **Same error twice**: when a check fails with the same error after a fix attempt, consult it before the next attempt.
-- **Before done**: for work delegated to `implement` or `implement-hard`, consult it after triaging the review and before reporting done. Ask what the original request needed that the work missed.
+- **Before done**: for work delegated to `implement`, consult it after triaging the review and before reporting done. Ask what the original request needed that the work missed.
 
 The checkpoints cover planned and delegated work. Trivial edits, `chore` work and questions skip them. When the advice changes the approach or finds a gap, say so in one line, including any advice you rejected and why.
 
@@ -74,7 +75,7 @@ Keep commit messages short: a one-line subject (~50-72 chars, imperative mood), 
 
 # PR descriptions
 
-Whenever you write a PR description for me, load the `pr-description` skill and follow its template.
+Whenever you write a PR description for me, load the `pr-description` skill and follow its template. In Claude Code, the `write` agent drafts it.
 
 # Worktrees
 

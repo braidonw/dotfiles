@@ -6,6 +6,8 @@ argument-hint: "Pile: a slug, file path or Google Doc URL"
 
 <what-to-do>
 
+In Claude Code, run this session on Fable 5.1. If the session model is anything else, ask the user to run `/model fable` and wait for them before going on.
+
 The user has passed (or will pass) a pile of raw material. It can be anything from a tidy list of fragments to a wall of unstructured prose to a transcript. The format does not matter. Read the pile and resolve where the article lives, both per `~/.agents/writing/STORAGE.md`.
 
 Then run a shaping session that produces a separate article. This is **exploit**. The exploring is done and the pile is fixed. Commit to a structure and mine the pile to fill it.

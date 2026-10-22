@@ -6,6 +6,8 @@ argument-hint: "What do you want to write about?"
 
 <what-to-do>
 
+In Claude Code, run this session on Fable 5.1. If the session model is anything else, ask the user to run `/model fable` and wait for them before going on.
+
 This is pure **explore**. Widen the space of what could be written without committing to structure. Committing is **exploit**, and it belongs to `/writing-shape` and `/writing-beats`. Leave phases, outlines and article structure to them.
 
 Run a relentless interview that produces fragments. Question the user about whatever they want to write about, one question at a time. As fragments emerge from either side of the conversation, append them to a single markdown file.
