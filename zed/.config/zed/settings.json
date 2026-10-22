@@ -50,7 +50,7 @@
   "icon_theme": {
     "mode": "dark",
     "light": "Catppuccin Mocha",
-    "dark": "Catppuccin Frappé",
+    "dark": "Warm Charmed Icons",
   },
   "buffer_font_features": {
     "calt": true,
@@ -68,14 +68,14 @@
     "ss08": true,
   },
   "base_keymap": "VSCode",
-  "buffer_font_family": "Berkeley Mono Semicondensed",
+  "buffer_font_family": "Berkeley Mono",
   "ui_font_family": "Zed Plex Sans",
   "vim_mode": true,
   "buffer_font_size": 14.0,
   "theme": {
     "mode": "dark",
     "light": "One Light",
-    "dark": "Catppuccin Frappé",
+    "dark": "Monokai Pro (CE)",
   },
   "terminal": {
     "font_family": "Zed Plex Sans",
