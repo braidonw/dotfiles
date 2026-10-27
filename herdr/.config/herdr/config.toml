@@ -13,3 +13,13 @@ focus_pane_left = ["prefix+h", "ctrl+alt+h"]
 focus_pane_down = ["prefix+j", "ctrl+alt+j"]
 focus_pane_up = ["prefix+k", "ctrl+alt+k"]
 focus_pane_right = ["prefix+l", "ctrl+alt+l"]
+goto = ["prefix+g", "ctrl+alt+g"]
+previous_workspace = "ctrl+alt+p"
+next_workspace = "ctrl+alt+n"
+switch_tab = ["prefix+1..9", "ctrl+alt+1..9"]
+
+[ui]
+status_indicators = "symbols"
+
+[ui.sound]
+enabled = false

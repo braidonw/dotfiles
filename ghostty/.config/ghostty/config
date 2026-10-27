@@ -1,5 +1,5 @@
 font-family = Berkeley Mono
-font-size = 14
+font-size = 15
 minimum-contrast = 1.4
 
 # Theme - auto-switches with macOS appearance
@@ -10,7 +10,7 @@ minimum-contrast = 1.4
 # theme = Tomorrow Night
 # theme = Xcode Dark hc
 # theme = light:Gruvbox Light Hard,dark:Gruvbox Dark Hard
-theme = Monokai Pro
+# theme = Monokai Pro
 # theme = Gruvbox Dark Hard
 # theme = Iceberg Dark
 
