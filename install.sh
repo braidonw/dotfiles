@@ -13,7 +13,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-packages=(agents fish git gh ghostty herdr lazygit linearmouse nvim tidewave zed claude codex pi zsh ssh)
+packages=(agents fish git gh ghostty herdr tuicr lazygit linearmouse nvim tidewave zed claude codex pi zsh ssh)
 
 if [ "${1:-}" = --bootstrap ]; then
     if ! command -v brew >/dev/null 2>&1; then

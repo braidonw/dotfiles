@@ -15,9 +15,11 @@ description: >-
   This is the opposite of pr-feedback, which reads the comments left on
   the USER'S OWN PR rather than producing a review of someone else's. For a
   status sweep across many PRs rather than a deep look at one, that's pr-board.
-  Always ends with a consolidated file/line list of paste-ready review comments,
-  so it also covers "give me comments I can leave on that PR". Does NOT push,
-  comment, or approve on GitHub; it reviews locally and reports.
+  Always ends with a severity-ranked file/line list of review comments in chat,
+  marking the ones to hold the PR on, and the same comments as post-ready drafts
+  in a tuicr PR session, so it also covers "give me comments I can leave on that
+  PR". Does NOT push, comment, or approve on GitHub; the user submits the drafts
+  from tuicr.
 ---
 
 # PR review
@@ -168,9 +170,7 @@ and the corroboration list.
 
 ## Step 5: Consolidate the findings into PR comments
 
-Step 4's report is organised for **reading**. This step produces the second
-artifact, organised for **posting**: one deduplicated, paste-ready comment per
-issue, each anchored to a file and line. Both ship, in this order, every time.
+Step 4's report is organised for **reading**. This step produces the second artifact, organised for **posting**. It holds one deduplicated comment per issue, each anchored to a file and line, in two places. The chat list is the severity-ranked record of every comment. The tuicr PR session holds the same comments as post-ready drafts. Both artifacts ship, in this order, every time.
 
 `code-review` keeps its axes separate and forbids merging or reranking them, and
 Step 4's report stays exactly as it is. This step reads that report and builds a
@@ -193,10 +193,7 @@ Then group by where GitHub can put them:
   important findings, so they get their own group rather than being dropped for
   want of a line to hang on.
 
-Each entry is `file:line` plus a severity, then the comment body as you would
-post it: prose addressed to the author, saying what is wrong and what it costs.
-One or two sentences for most, more only where the mechanism needs it. Within
-each group, worst first, and say plainly which ones you would hold the PR on.
+Each chat entry is `file:line` and a severity, marked `hold` where you would hold the PR on it, then the comment body. Draft every body against `comment-style.md` in this skill's directory. The body is the text the author reads, so it carries no severity. Within each group, worst first.
 
 Where a finding follows an existing pattern in the codebase, say so in the
 comment. "This clones the module beside it" and "this author invented something
@@ -207,7 +204,7 @@ exactly once, or is dropped with a one-line reason. A corroborated finding
 collapses into a single entry carrying the strongest evidence from each axis
 that raised it.
 
-**Publish to Hunk** once the list is complete. Every inline comment goes through the `hunk-notes` skill, with `baseRefName` as the fixed point. Each summary is `<severity>: <the comment's first sentence>`, with `hold` after the severity where you would hold the PR on it, and the rationale is the rest of the comment. Top-level comments stay in the chat list.
+**Publish to tuicr** once the list is complete. Run the `tuicr-notes` skill in PR mode, with `--pr <number>`. Each inline comment goes in as its body alone, and each top-level comment goes in as a review-level draft. Then tell the user to edit or delete drafts in tuicr and run `:submit` when they are ready.
 
 Close with the caveats the user needs before posting in their own name: any axis
 that did not run (a failed or skipped Codex leaves every finding as one model's
@@ -223,16 +220,12 @@ anything.
 Finally, offer to put the worktree back where it was:
 `git checkout <recorded-branch>` (and `git stash pop` if you stashed in Step 2).
 Leave the worktree as you found it unless the user wants to keep exploring the PR.
-Hunk is watching this checkout, so restore it only once the user has finished with the notes.
+The drafts live in tuicr's store rather than this checkout, and `tuicr pr <number>` reopens them from any checkout of the repo. They are tied to the PR's head commit, so tell the user to `:submit` before the author pushes again. After a push, `tuicr pr <number>` opens a new session, and drafts on changed files do not carry over.
 In a review worktree there is nothing to restore. Exiting the session removes the worktree and its workspace. If you applied fixes there, tell the user the watcher will keep the worktree, so they push or discard the fixes and then run `git worktree remove <path>` from the main checkout and close the workspace.
 
 ## Notes
 
-- **Never write to GitHub.** No `gh pr comment`, no `gh pr review`, no approve or
-  request-changes, no push. This skill reviews locally and reports; posting the
-  review back is a separate, explicit request. Step 5's comments are paste-ready
-  on purpose, and they are handed to the user to post in their own name. Hand
-  over the text and stop there.
+- **Never write to GitHub.** No `gh pr comment`, no `gh pr review`, no approve or request-changes, no push. This skill reviews locally and reports; posting the review back is a separate, explicit request. Step 5's comments are post-ready drafts on purpose, and the user submits them from tuicr in their own name. Hand over the drafts and stop there.
 - **Bots are excluded by design**, because dependabot/renovate PRs are not what a
   full review is for. If the user explicitly wants one reviewed, take the number
   directly (Step 2) rather than going through discovery.
