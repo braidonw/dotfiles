@@ -1,6 +1,6 @@
 # Locating this repo's agent docs
 
-How to find this repo's agent docs: the tracker file, the domain file, triage labels, the glossary (`CONTEXT.md`), and ADRs. Every consumer skill resolves the layout this way rather than assuming a path.
+How to find this repo's agent docs: the tracker file, the domain file, triage labels, ui-check notes, the glossary (`CONTEXT.md`), and ADRs. Every consumer skill resolves the layout this way rather than assuming a path.
 
 Run the lookup from the repo root of the current checkout. Every worktree of the same repo resolves to the same external directory.
 
@@ -15,6 +15,7 @@ Run the lookup from the repo root of the current checkout. Every worktree of the
 - tracker file: `docs/agents/issue-tracker.md`
 - domain file: `docs/agents/domain.md`
 - triage labels: `docs/agents/triage-labels.md`
+- ui-check notes: `docs/agents/ui-check.md`
 - glossary: `CONTEXT.md`, ADRs: `docs/adr/`
 - multi-context: `CONTEXT-MAP.md` at the root, `src/<context>/CONTEXT.md`, `src/<context>/docs/adr/` (existing convention, keep it)
 
@@ -25,6 +26,7 @@ Run the lookup from the repo root of the current checkout. Every worktree of the
 - tracker file: `<root>/agents/issue-tracker.md`
 - domain file: `<root>/agents/domain.md`
 - triage labels: `<root>/agents/triage-labels.md`
+- ui-check notes: `<root>/agents/ui-check.md`
 - glossary: `<root>/CONTEXT.md`, ADRs: `<root>/adr/`
 - multi-context: `<root>/CONTEXT-MAP.md`, `<root>/<context>/CONTEXT.md`, `<root>/<context>/adr/`, where `<context>` is the project's path relative to the repo root (for example `super_api`, `xonboard`, `scf`)
 

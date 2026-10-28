@@ -19,11 +19,19 @@ What changed:
 - <plain-language change>
 - <plain-language change>
 
+<optional: screenshots>
+Screenshots:
+
+| Page | Desktop | Mobile |
+| --- | --- | --- |
+| <page in domain words> | [drop <file name>] | [drop <file name>] |
+
 Notes: <where to start reviewing, known follow-ups, what is deliberately out of scope>
 ```
 
 - The ticket line appears only when there is a ticket. Take it from the branch name or the conversation.
 - `What changed:` bullets are one line each and describe behaviour in plain terms.
+- `Screenshots:` appears only when `ui-check` captured pages. See _Screenshots_.
 
 Skip all preamble and keep prose brief. Use the domain vocabulary from this repo's glossary, located per `~/.agents/skills/setup-braidon-skills/locate.md`.
 
@@ -101,6 +109,14 @@ For a state or control-flow change:
 ```
 
 Keep only the steps, states and boundaries the reviewer needs to follow the change.
+
+## Screenshots
+
+When the branch touches UI and the repo has ui-check notes (located per `~/.agents/skills/setup-braidon-skills/locate.md`), take screenshots of the branch before drafting. Run the `ui-check` skill in capture mode through a sub-agent, which keeps the browser output out of this context, and pass it the branch's diff command.
+
+Build the `Screenshots:` table from its list. Each page gets one row, labelled in domain words, with a desktop cell and a mobile cell. Each cell is a slot, `[drop <file name>]`. A page with no mobile shot leaves its mobile cell empty. When `ui-check` skips, leave the block out and give its reason in the reply.
+
+The reply to the user names the screenshot folder and says to drag each file onto its slot in GitHub's editor. When a `write` agent drafts the description, pass it the screenshot list as a fact.
 
 ## Merge danger
 

@@ -1,17 +1,18 @@
 ---
 name: code-review
-description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along five axes: Standards (does the code follow this repo's documented coding standards?), Spec (does the code match what the originating issue/spec asked for?), Language (does it pass the language-specific review skill, such as elixir-review, when one is installed for the languages in the diff?), Codex (an independent second-model review via the OpenAI Codex CLI, skipped cleanly when Codex is unavailable), and Simplification (is there less code that does the same job?). Runs the reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, a dual or two-model review, asks whether the code can be simplified, or asks to \"review since X\"."
+description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along six axes: Standards (does the code follow this repo's documented coding standards?), Spec (does the code match what the originating issue/spec asked for?), Language (does it pass the language-specific review skill, such as elixir-review, when one is installed for the languages in the diff?), Codex (an independent second-model review via the OpenAI Codex CLI, skipped cleanly when Codex is unavailable), Simplification (is there less code that does the same job?), and UI (does the changed UI render and behave at desktop and mobile, when the repo has ui-check notes?). Runs the reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, a dual or two-model review, asks whether the code can be simplified, or asks to \"review since X\"."
 ---
 
-Five-axis review of the diff between `HEAD` and a fixed point the user supplies:
+Six-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 - **Standards**: does the code conform to this repo's documented coding standards?
 - **Spec**: does the code faithfully implement the originating issue / spec?
 - **Language**: does the code pass the language-specific review skill (for example `elixir-review`) for each language in the diff? Only runs when such a skill is installed.
 - **Codex**: what does a different model, with no stake in this session, see? OpenAI Codex reviews the same diff through the Codex CLI and its findings are triaged against the real code.
 - **Simplification**: is there less code that does the same job? Single-caller indirection, handling for errors that cannot happen, and work the repo already does elsewhere.
+- **UI**: does the changed UI render and behave at desktop and mobile? The `ui-check` skill opens the changed pages in the local app, screenshots them and clicks through what changed. Only runs when the repo has ui-check notes.
 
-Standards, Spec and Language are in-house lenses pointed at conventions. Codex is the outside eye, and it tends to catch cross-cutting things the lenses skip (build wiring, infra, config, plain correctness bugs). Simplification is pointed at subtraction rather than at conformance or correctness, so it is the axis with something to say about a diff the other four pass. Where two axes independently flag the same site, that agreement is the strongest signal in the report.
+Standards, Spec and Language are in-house lenses pointed at conventions. Codex is the outside eye, and it tends to catch cross-cutting things the lenses skip (build wiring, infra, config, plain correctness bugs). Simplification is pointed at subtraction rather than at conformance or correctness, so it is the axis with something to say about a diff every other axis passes. UI is the only axis that runs the code, so it sees what reading cannot, such as a layout that breaks at mobile or a modal that never closes. Where two axes independently flag the same site, that agreement is the strongest signal in the report.
 
 All axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
@@ -144,16 +145,21 @@ If the spec is missing, skip the Spec sub-agent and note this in the final repor
   >
   > Other axes cover idiom, conformance and correctness. Where one of them would flag a site you found, report it anyway. Agreement between axes is the most useful signal in this report, so suppressing your own finding destroys it. Under 400 words.
 
+**UI sub-agent prompt.** Spawn it whenever this repo's ui-check notes resolve per `locate.md`. When they do not, skip it and say in the final report that the repo has no ui-check notes. `ui-check` itself decides whether the diff touches UI. On a cold worktree preview it can take up to 25 minutes, so expect it to finish last. Its prompt should include:
+
+- The fixed point, the diff command from step 1, and whether this checkout is a worktree or the main checkout.
+- The brief: "Invoke the `ui-check` skill in review mode and carry it out. Report in its format. Under 400 words."
+
 ### 7. Aggregate
 
-Present the reports under `## Standards`, `## Spec`, `## Codex`, `## Simplification`, and one `## Language: <name>` heading per Language sub-agent, verbatim or lightly cleaned. Do **not** merge or rerank findings, because the axes are deliberately separate (see _Why separate axes_). If the same defect shows up under Standards and Language, keep it in both and say so; agreement is signal, not duplication.
+Present the reports under `## Standards`, `## Spec`, `## Codex`, `## Simplification`, `## UI`, and one `## Language: <name>` heading per Language sub-agent, verbatim or lightly cleaned. Do **not** merge or rerank findings, because the axes are deliberately separate (see _Why separate axes_). If the same defect shows up under Standards and Language, keep it in both and say so; agreement is signal, not duplication.
 
-End with a summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes: that's the reranking the separation exists to prevent.
+End with a summary: total findings per axis and the worst issue _within each axis_ (if any). A skipped UI axis shows its one-line reason. Don't pick a single winner across axes. That is the reranking the separation exists to prevent.
 
 Under the summary, add a **corroboration** list: every site two or more axes flagged, one line each, naming the site and which axes raised it.
 
 ```
-Corroborated: `lib/foo.ex:42` (Codex and Language). `lib/bar.ex:9` (Standards and Codex).
+Corroborated: `lib/foo.ex:42` (Codex and Language). `lib/bar.ex:9` (Standards and Codex). `lib/foo_live.ex:30` (UI and Spec).
 ```
 
 These are pointers, not findings. They preserve the agreement signal, which is the most reliable thing in the report, while every finding stays in the section that owns it.
@@ -167,5 +173,6 @@ A change can pass one axis and fail another:
 - Code that meets the repo's documented standards and the spec but leans on a language anti-pattern the repo never wrote down → **Standards pass, Spec pass, Language fail.**
 - Code that satisfies all three in-house lenses but carries a plain correctness bug, because every lens was pointed at conventions rather than behaviour → **Codex fail.**
 - Code that is conformant, idiomatic, correct and exactly what the issue asked for, and still takes forty lines to say what fifteen would → **four passes, Simplification fail.**
+- A page that passes all five reading axes and still overflows sideways on a phone, because no axis rendered it, is **five passes, UI fail.**
 
 Reporting them separately stops one axis from masking another.

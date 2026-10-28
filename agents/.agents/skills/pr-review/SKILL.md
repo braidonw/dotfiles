@@ -4,8 +4,8 @@ description: >-
   Produce a fresh review of SOMEONE ELSE'S GitHub pull request: check the PR out
   (inside Herdr, into a throwaway review worktree with its own workspace and a new
   agent session; otherwise into the current worktree), run the code-review skill
-  against it, and report the findings. The PR gets reviewed on all four axes at once, three Claude lenses
-  (Standards, Spec, Language) plus an independent Codex review in parallel. Use
+  against it, and report the findings. The PR gets reviewed on every code-review
+  axis at once, UI included when it touches pages. Use
   whenever the user wants to review a PR from GitHub: "review PR 7401", "review
   this PR <url>", "run both reviewers on #7380", or discovery asks like "what PRs
   should I review?", "any PRs from the team to look at?", "show me PRs I haven't
@@ -195,6 +195,8 @@ Then group by where GitHub can put them:
 
 Each chat entry is `file:line` and a severity, marked `hold` where you would hold the PR on it, then the comment body. Draft every body against `comment-style.md` in this skill's directory. The body is the text the author reads, so it carries no severity. Within each group, worst first.
 
+UI findings become comments like any other. Each one's chat entry also carries the screenshot path, and its body leaves the path out, since a local path means nothing on GitHub.
+
 Where a finding follows an existing pattern in the codebase, say so in the
 comment. "This clones the module beside it" and "this author invented something
 odd" call for different responses from the author, and only the first is true.
@@ -204,7 +206,7 @@ exactly once, or is dropped with a one-line reason. A corroborated finding
 collapses into a single entry carrying the strongest evidence from each axis
 that raised it.
 
-**Publish to tuicr** once the list is complete. Run the `tuicr-notes` skill in PR mode, with `--pr <number>`. Each inline comment goes in as its body alone, and each top-level comment goes in as a review-level draft. Then tell the user to edit or delete drafts in tuicr and run `:submit` when they are ready.
+**Publish to tuicr** once the list is complete. Run the `tuicr-notes` skill in PR mode, with `--pr <number>`. Each inline comment goes in as its body alone, and each top-level comment goes in as a review-level draft. Then tell the user to edit or delete drafts in tuicr and run `:submit` when they are ready. When the UI axis took screenshots, also name the screenshot folder, so the user can drag the images into the posted comments on GitHub after `:submit`.
 
 Close with the caveats the user needs before posting in their own name: any axis
 that did not run (a failed or skipped Codex leaves every finding as one model's
