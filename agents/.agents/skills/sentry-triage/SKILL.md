@@ -52,6 +52,21 @@ function** (from the stacktrace, top in-app frame), and the **tags that change
 the diagnosis** — `environment`, `release`, `handled`, and for Oban:
 `oban_worker`, `oban_queue`, `oban_state`, plus any attempt/retry count.
 
+### 1b. Run in a checkout of origin/main
+
+Triage reads the code production runs, not whatever branch this checkout is on. Outside Herdr, carry on here. Inside Herdr (`test "${HERDR_ENV:-}" = 1`), run `git fetch origin main` and stay inline when any of these hold: `git rev-parse HEAD` equals `origin/main`, the user asked to triage here, or the input is a paste with no issue ID. Otherwise hand off. `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir`, `<id>` is the issue ID lowercased (`super_api-backend-34y`), and every herdr call and the watcher run outside the sandbox:
+
+```bash
+sha=$(git rev-parse origin/main)
+git worktree add --detach <main>/../<main-dirname>-triage-<id> $sha
+herdr worktree open --cwd <main> --path <that path> --label triage-<id> --no-focus
+herdr agent start triage-<id> --kind <claude|codex|pi> --pane <.result.root_pane.pane_id>
+herdr agent prompt triage-<id> "/sentry-triage <issue ID or URL>"
+nohup ~/.agents/skills/pr-review/scripts/watch_pr_session.sh review <pane-id> <.result.workspace.workspace_id> <that path> <main> $sha >/dev/null 2>&1 & disown
+```
+
+Pass any user instruction on in the prompt. Tell the user the workspace and agent name, and that exiting the session removes the worktree and closes the workspace, unless it holds uncommitted changes or HEAD has moved off `$sha`. Then stop. Completion criterion: the agent shows as `working` and `pgrep -f watch_pr_session` finds the watcher.
+
 ### 2. Locate the code
 
 Map the culprit frame to real source. Don't trust the path Sentry prints (it's
@@ -62,6 +77,7 @@ often `unknown file [Line null]` for Oban workers) — find it yourself:
 - Robust approach: `grep`/Glob for the module name (`defmodule SuperApi.…`) and
   the function from the frame (`def process`, `def perform`). Use the heuristic
   as a starting guess, but confirm by reading the file.
+- When a frame's line does not match the code, run `git log` on the file to see what changed since the event's release.
 
 Read the failing function **and enough around it** — the callers, the functions
 it calls that could produce the error value, the changeset/query/HTTP call that
@@ -126,4 +142,4 @@ error comes from one of these two calls; a log line at X would confirm which".
 
 Close by offering, not doing: "Want me to implement the fix?" (then it's an
 edit, optionally via elixir-review), or "draft a Linear ticket?". Wait for the
-user — this skill stops at the recommendation.
+user — this skill stops at the recommendation. In a triage worktree the checkout is a detached `origin/main`, so a fix starts with `git switch -c <branch>`.

@@ -47,6 +47,33 @@ comments on 1482") or a full URL. Pass it straight through to the script.
 If the script reports no PR for the current branch, say so plainly and ask for
 a number/URL rather than guessing — don't fall back to a different branch's PR.
 
+### 1b. Run in a checkout of the PR branch
+
+Comments must be judged against the PR's code, so outside Herdr, or when the PR came from the current branch, carry on here. Otherwise read `gh pr view <number> --json url,headRefName,headRefOid`. Inside Herdr (`test "${HERDR_ENV:-}" = 1`), take the first case that matches. `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir`, and every herdr call and the watcher run outside the sandbox.
+
+1. **Inline.** The current branch is `headRefName`, or `git rev-parse HEAD` equals `headRefOid`. Carry on with Step 2 here.
+2. **Checked out in another worktree.** `git worktree list --porcelain` shows `branch refs/heads/<headRefName>` at some `<path>`. Find its workspace in `herdr workspace list` by `worktree.checkout_path`, or open one with `herdr worktree open --cwd <main> --path <path> --no-focus`. Then:
+   ```bash
+   herdr tab create --workspace <workspace-id> --cwd <path> --label feedback-pr-<number> --no-focus
+   herdr agent start feedback-pr-<number> --kind <claude|codex|pi> --pane <tab's root pane-id>
+   herdr agent prompt feedback-pr-<number> "/pr-feedback <url>"
+   nohup ~/.agents/skills/pr-review/scripts/watch_pr_session.sh tab <pane-id> <tab-id> >/dev/null 2>&1 & disown
+   ```
+   The watcher closes only that tab when the agent exits. The worktree is the user's and stays.
+3. **Anywhere else.** Make a temp worktree with the branch checked out:
+   ```bash
+   git fetch origin <headRefName>
+   git worktree add <main>/../<main-dirname>-feedback-pr-<number> <headRefName>   # local branch exists
+   git worktree add --track -b <headRefName> <main>/../<main-dirname>-feedback-pr-<number> origin/<headRefName>   # it does not
+   herdr worktree open --cwd <main> --path <that path> --label feedback-pr-<number> --no-focus
+   herdr agent start feedback-pr-<number> --kind <claude|codex|pi> --pane <root pane-id>
+   herdr agent prompt feedback-pr-<number> "/pr-feedback <url>"
+   nohup ~/.agents/skills/pr-review/scripts/watch_pr_session.sh branch <pane-id> <workspace-id> <that path> <main> >/dev/null 2>&1 & disown
+   ```
+   When the agent exits, the watcher stops any worktree preview and deletes its volumes, removes the worktree, then closes the workspace. It keeps everything, and raises a Herdr notification, when there are uncommitted changes or unpushed commits.
+
+In cases 2 and 3, pass any user instruction on in the prompt, tell the user the workspace and agent name and what exiting the session cleans up, then stop. Completion criterion: the agent shows as `working` and `pgrep -f watch_pr_session` finds the watcher.
+
 ### 2. Fetch the feedback
 
 Run the bundled script — it lives in this skill's `scripts/` directory (use

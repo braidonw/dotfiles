@@ -100,12 +100,12 @@ Read the PR's head commit first: `gh pr view <number> --json headRefOid,url`.
    Pass on any user instruction for the review (skip Codex, focus areas, the `new_activity` note) in the same prompt.
 3. Start the cleanup watcher, detached so it outlives this session. Run it outside the sandbox, like every herdr call:
    ```bash
-   nohup <skill-dir>/scripts/watch_review_worktree.sh <pane-id> <workspace-id> <that path> <main> <headRefOid> >/dev/null 2>&1 & disown
+   nohup <skill-dir>/scripts/watch_pr_session.sh review <pane-id> <workspace-id> <that path> <main> <headRefOid> >/dev/null 2>&1 & disown
    ```
-   `<workspace-id>` is `.result.workspace.workspace_id` from the `worktree open` result. When the review agent exits or its pane closes, the watcher removes the worktree and then closes the workspace. It keeps both, and raises a Herdr notification, when the worktree has uncommitted changes or its HEAD has moved off `headRefOid`.
+   `<workspace-id>` is `.result.workspace.workspace_id` from the `worktree open` result. When the review agent exits or its pane closes, the watcher stops any worktree preview and deletes its volumes, removes the worktree, then closes the workspace. It keeps everything, and raises a Herdr notification, when the worktree has uncommitted changes or its HEAD has moved off `headRefOid`.
 4. Tell the user the workspace label and agent name, and that exiting the review session cleans up both, unless they leave changes or commits in the worktree.
 
-Completion criterion: the agent shows as `working` and `pgrep -f watch_review_worktree` finds the watcher. Steps 3 to 6 run in that session.
+Completion criterion: the agent shows as `working` and `pgrep -f watch_pr_session` finds the watcher. Steps 3 to 6 run in that session.
 
 **Otherwise**, the user wants the PR in the current worktree, which means switching branches.
 Do not clobber uncommitted work:
