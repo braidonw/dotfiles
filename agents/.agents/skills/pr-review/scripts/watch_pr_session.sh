@@ -34,13 +34,18 @@ wait_for_agent_exit() {
   done
 }
 
-# Volume names mirror preview.sh, which keeps them on stop.
+# Names mirror preview.sh. Torn down here because the main checkout's branch may not carry preview.sh.
 stop_preview() {
-  local preview=$main/scripts/preview.sh name
-  [ -x "$preview" ] || return 0
-  "$preview" stop "$worktree" >/dev/null 2>&1
-  name=$(basename "$worktree" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]/-/g')
-  docker volume rm "$name-preview-pgdata" "$name-preview-deps" "$name-preview-build" >/dev/null 2>&1
+  local network container
+  network=$(basename "$worktree" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]/-/g')-preview
+  for container in $(docker ps -aq --filter "name=^$network-"); do
+    docker rm -fv "$container" >/dev/null 2>&1
+  done
+  for container in $(docker network inspect "$network" --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null); do
+    docker network disconnect "$network" "$container" >/dev/null 2>&1
+  done
+  docker network rm "$network" >/dev/null 2>&1
+  docker volume rm "$network-pgdata" "$network-deps" "$network-build" >/dev/null 2>&1
   return 0
 }
 
