@@ -96,6 +96,8 @@ List the file extensions in the diff and map each to a language (`.ex`/`.exs` is
 
 ### 6. Spawn all sub-agents in parallel
 
+In Claude Code, spawn every axis sub-agent with `model: "sonnet"`. The aggregating session keeps its own model for the final judgement.
+
 **Standards sub-agent prompt** should include:
 
 - The full diff command and commit list.

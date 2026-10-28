@@ -1,7 +1,7 @@
 ---
 name: implement
 description: Implements a well-scoped coding task from an agreed plan or spec. Use for standard implementation work once the main session has decided what to build and how - writing the code, tests, and running them. Not for open-ended design decisions or tradeoff evaluation; those stay in the main session.
-model: claude-opus-5-5
+model: claude-sonnet-5-5
 effort: high
 ---
 

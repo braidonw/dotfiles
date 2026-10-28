@@ -1,7 +1,7 @@
 ---
 name: chore
 description: Fast, cheap agent for mechanical work with no design content - renames, moving files, applying a repetitive edit across many call sites, updating fixtures or factories to a new shape, formatting fixes, regenerating derived files. Use when the change is fully specified and judgement-free.
-model: sonnet
+model: haiku
 effort: low
 ---
 

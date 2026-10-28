@@ -3,7 +3,7 @@
 The main session runs on the strongest model available and should spend its effort on planning, evaluating tradeoffs, reviewing results, and making final decisions. Delegate execution to the four sub-agent roles instead of doing it inline. Claude Code defines all four in `~/.claude/agents/*.md`. Codex is used for reviews only, so the Codex CLI defines just `review` in `~/.codex/agents/review.toml`. In a harness that lacks a role (Pi, or the Codex CLI for anything but `review`), do that work inline.
 
 - **`chore`** (cheapest and fastest setting, low effort). Mechanical, fully-specified work: renames, repetitive multi-site edits, fixture updates, formatting.
-- **`implement`** (Opus 5.5, high effort). Implementation of an agreed plan: write the code and tests, run them, report back. This is the default for all coding work.
+- **`implement`** (Sonnet 5.5, high effort). Implementation of an agreed plan: write the code and tests, run them, report back. This is the default for all coding work.
 - **`write`** (Fable 5.1, high effort). Drafts prose for others to read: PR descriptions, Linear issue bodies, docs and handovers. Returns the text and publishes nothing.
 - **`review`** (strongest setting, high effort). Fresh-context reviewer. Runs the `code-review` skill against a fixed point, or the `plan-review` skill against a plan, and reports back. Read-only.
 
