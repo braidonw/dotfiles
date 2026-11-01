@@ -173,6 +173,8 @@ do
   vim.o.confirm = true
 
   vim.o.colorcolumn = '120'
+
+  vim.o.winborder = 'rounded'
 end
 
 -- ============================================================
@@ -237,6 +239,11 @@ do
   vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
   vim.keymap.set('i', 'jk', '<Esc>', { desc = 'Exit insert mode' })
+
+  vim.keymap.set('n', '<C-d>', '<C-d>zz', { desc = 'Scroll down and center' })
+  vim.keymap.set('n', '<C-u>', '<C-u>zz', { desc = 'Scroll up and center' })
+  vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Next match and center' })
+  vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Previous match and center' })
 
   vim.keymap.set('x', 'v', function() vim.treesitter.select('parent', vim.v.count1) end, { desc = 'Expand selection to parent node' })
   vim.keymap.set('x', 'V', function() vim.treesitter.select('child', vim.v.count1) end, { desc = 'Shrink selection to child node' })
@@ -444,11 +451,17 @@ do
   -- change the command under that to load whatever the name of that colorscheme is.
   --
   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-  vim.pack.add { gh 'loctvl842/monokai-pro.nvim' }
-  require('monokai-pro').setup { filter = 'pro' }
-
-  -- Load the colorscheme here.
-  vim.cmd.colorscheme 'monokai-pro'
+  -- Matches Rex's Merino Dark, which is GitHub's Primer palette.
+  vim.pack.add { gh 'nvim-mini/mini.nvim' }
+  require('mini.base16').setup {
+    palette = {
+      base00 = '#0d1117', base01 = '#161b22', base02 = '#30363d', base03 = '#6e7681',
+      base04 = '#8b949e', base05 = '#e6edf3', base06 = '#f0f6fc', base07 = '#ffffff',
+      base08 = '#ff7b72', base09 = '#ffa657', base0A = '#d29922', base0B = '#3fb950',
+      base0C = '#39c5cf', base0D = '#58a6ff', base0E = '#bc8cff', base0F = '#ffa198',
+    },
+  }
+  vim.g.colors_name = 'merino'
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }

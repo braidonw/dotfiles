@@ -10,10 +10,6 @@
       "src": "https://github.com/saghen/blink.cmp",
       "version": "1.0.0 - 2.0.0"
     },
-    "catppuccin": {
-      "rev": "edefef779ab08ce1a4a404713e3012b0d202bd35",
-      "src": "https://github.com/catppuccin/nvim"
-    },
     "conform.nvim": {
       "rev": "016802de402556da54c36bd7359b441266b01cdd",
       "src": "https://github.com/stevearc/conform.nvim"
@@ -46,10 +42,6 @@
       "rev": "561751e839b99a4baca36b9d963166b66d2536a6",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
-    "monokai-pro.nvim": {
-      "rev": "a68e38b8e55d69a215d0f02598900a79c356da9d",
-      "src": "https://github.com/loctvl842/monokai-pro.nvim"
-    },
     "nvim-lspconfig": {
       "rev": "3e8d598d3b5f8338a41699c436e5fa11d2666cf0",
       "src": "https://github.com/neovim/nvim-lspconfig"
@@ -70,10 +62,6 @@
     "plenary.nvim": {
       "rev": "74b06c6c75e4eeb3108ec01852001636d85a932b",
       "src": "https://github.com/nvim-lua/plenary.nvim"
-    },
-    "rose-pine": {
-      "rev": "ff483051a47e27d84bdef47703538df1ed9f4a47",
-      "src": "https://github.com/rose-pine/neovim"
     },
     "telescope-fzf-native.nvim": {
       "rev": "b25b749b9db64d375d782094e2b9dce53ad53a40",
