@@ -8,6 +8,7 @@ fish/.config/fish/fish_variables
 claude/.claude/*
 !claude/.claude/CLAUDE.md
 !claude/.claude/settings.json
+!claude/.claude/statusline.sh
 !claude/.claude/agents/
 !claude/.claude/commands/
 !claude/.claude/skills/
