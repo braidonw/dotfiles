@@ -1,8 +1,7 @@
 onboarding = false
 
 [theme]
-name = "terminal"
-
+name = "one-dark"
 auto_switch = false
 [ui.toast]
 delivery = "herdr"
