@@ -3,6 +3,15 @@ gh/.config/gh/hosts.yml
 
 # Auto-generated / machine-local state
 fish/.config/fish/fish_variables
+herdr/.config/herdr/.config.toml.gpui-lock
+
+# Skills installed and updated by the Rex and Herdr apps
+agents/.agents/skills/rex/
+agents/.agents/skills/herdr-automations/
+agents/.agents/skills/herdr-gpui-browser/
+claude/.claude/skills/rex/
+claude/.claude/skills/herdr-automations/
+claude/.claude/skills/herdr-gpui-browser/
 
 # Ignore everything under claude/.claude/ except what we deliberately track
 claude/.claude/*
