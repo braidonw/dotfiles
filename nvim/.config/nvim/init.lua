@@ -462,6 +462,8 @@ do
     },
   }
   vim.g.colors_name = 'merino'
+  -- base16 gives modules and keywords the same purple
+  vim.api.nvim_set_hl(0, '@module', { fg = '#d29922' })
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
