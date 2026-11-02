@@ -49,15 +49,12 @@ a number/URL rather than guessing — don't fall back to a different branch's PR
 
 ### 1b. Run in a checkout of the PR branch
 
-Comments must be judged against the PR's code, so outside Herdr, or when the PR came from the current branch, carry on here. Otherwise read `gh pr view <number> --json url,headRefName,headRefOid`. Inside Herdr (`test "${HERDR_ENV:-}" = 1`), take the first case that matches. `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir`, and every herdr call and the watcher run outside the sandbox.
+Comments must be judged against the PR's code, so outside herdr and Rex, or when the PR came from the current branch, carry on here. Otherwise read `gh pr view <number> --json url,headRefName,headRefOid`. Inside herdr or Rex (`~/.agents/bin/terminal.sh backend` prints `herdr` or `rex`, not `none`), take the first case that matches. `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir`, `<claude|codex|pi>` is the kind of your own harness, and every `terminal.sh` call runs outside the sandbox.
 
 1. **Inline.** The current branch is `headRefName`, or `git rev-parse HEAD` equals `headRefOid`. Carry on with Step 2 here.
-2. **Checked out in another worktree.** `git worktree list --porcelain` shows `branch refs/heads/<headRefName>` at some `<path>`. Find its workspace in `herdr workspace list` by `worktree.checkout_path`, or open one with `herdr worktree open --cwd <main> --path <path> --no-focus`. Then:
+2. **Checked out in another worktree.** `git worktree list --porcelain` shows `branch refs/heads/<headRefName>` at some `<path>`. Open a tab for it, which also starts the watcher:
    ```bash
-   herdr tab create --workspace <workspace-id> --cwd <path> --label feedback-pr-<number> --no-focus
-   herdr agent start feedback-pr-<number> --kind <claude|codex|pi> --pane <tab's root pane-id>
-   herdr agent prompt feedback-pr-<number> "/pr-feedback <url>"
-   nohup ~/.agents/skills/pr-review/scripts/watch_pr_session.sh tab <pane-id> <tab-id> >/dev/null 2>&1 & disown
+   ~/.agents/bin/terminal.sh hand-off tab <path> feedback-pr-<number> <claude|codex|pi> "/pr-feedback <url>"
    ```
    The watcher closes only that tab when the agent exits. The worktree is the user's and stays.
 3. **Anywhere else.** Make a temp worktree with the branch checked out:
@@ -65,14 +62,11 @@ Comments must be judged against the PR's code, so outside Herdr, or when the PR 
    git fetch origin <headRefName>
    git worktree add <main>/../<main-dirname>-feedback-pr-<number> <headRefName>   # local branch exists
    git worktree add --track -b <headRefName> <main>/../<main-dirname>-feedback-pr-<number> origin/<headRefName>   # it does not
-   herdr worktree open --cwd <main> --path <that path> --label feedback-pr-<number> --no-focus
-   herdr agent start feedback-pr-<number> --kind <claude|codex|pi> --pane <root pane-id>
-   herdr agent prompt feedback-pr-<number> "/pr-feedback <url>"
-   nohup ~/.agents/skills/pr-review/scripts/watch_pr_session.sh branch <pane-id> <workspace-id> <that path> <main> >/dev/null 2>&1 & disown
+   ~/.agents/bin/terminal.sh hand-off branch <that path> feedback-pr-<number> <claude|codex|pi> "/pr-feedback <url>"
    ```
-   When the agent exits, the watcher stops any worktree preview and deletes its volumes, removes the worktree, then closes the workspace. It keeps everything, and raises a Herdr notification, when there are uncommitted changes or unpushed commits.
+   When the agent exits, the watcher stops any worktree preview and deletes its volumes, removes the worktree, then closes the workspace. It keeps everything, and raises a notification, when there are uncommitted changes or unpushed commits.
 
-In cases 2 and 3, pass any user instruction on in the prompt, tell the user the workspace and agent name and what exiting the session cleans up, then stop. Completion criterion: the agent shows as `working` and `pgrep -f watch_pr_session` finds the watcher.
+In cases 2 and 3, pass any user instruction on in the prompt, tell the user the workspace and agent name and what exiting the session cleans up, then stop. Completion criterion: `~/.agents/bin/terminal.sh pane-state <agent-pane>` exits 0 and `pgrep -f watch_pr_session` finds the watcher. `hand-off` prints `<workspace-or-tab>\t<agent-pane>`, and `<agent-pane>` is the second field.
 
 ### 2. Fetch the feedback
 

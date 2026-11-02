@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Waits for the agent in a herdr pane to exit or its pane to close, then cleans up what the PR session opened.
+# Waits for the agent in a herdr or Rex pane to exit or its pane to close, then cleans up what the PR session opened.
 # Usage:
 #   watch_pr_session.sh review <pane-id> <workspace-id> <worktree> <main-checkout> <head-sha>
 #   watch_pr_session.sh branch <pane-id> <workspace-id> <worktree> <main-checkout>
@@ -7,31 +7,15 @@
 set -uo pipefail
 
 mode=$1 pane=$2
-poll_s=5
+
+terminal=$(cd "$(dirname "$0")/../../../bin" && pwd)/terminal.sh
 
 notify() {
-  herdr notification show "$1" --body "$2" >/dev/null 2>&1
+  "$terminal" notify "$1" "$2"
 }
 
 wait_for_agent_exit() {
-  local misses=0 pane_json agent
-  while [ "$misses" -lt 2 ]; do
-    sleep "$poll_s"
-    if pane_json=$(herdr pane get "$pane" 2>&1); then
-      agent=$(jq -r '.result.pane.agent // empty' <<<"$pane_json")
-    elif [ "$(jq -r '.error.code // empty' <<<"$pane_json" 2>/dev/null)" = pane_not_found ]; then
-      agent=
-    else
-      misses=0
-      continue
-    fi
-
-    if [ -z "$agent" ]; then
-      misses=$((misses + 1))
-    else
-      misses=0
-    fi
-  done
+  "$terminal" wait-agent-exit "$pane"
 }
 
 # Names mirror preview.sh. Torn down here because the main checkout's branch may not carry preview.sh.
@@ -55,7 +39,7 @@ remove_worktree() {
   cd "$main" || exit 1
 
   if [ ! -d "$worktree" ]; then
-    herdr workspace close "$workspace" >/dev/null 2>&1
+    "$terminal" close-workspace "$workspace"
     exit 0
   fi
 
@@ -86,25 +70,25 @@ remove_worktree() {
     exit 1
   fi
 
-  herdr workspace close "$workspace" >/dev/null 2>&1
+  "$terminal" close-workspace "$workspace"
   exit 0
 }
 
 case "$mode" in
   review)
     workspace=$3 worktree=$4 main=$5 head_sha=$6
-    wait_for_agent_exit
+    wait_for_agent_exit || exit 1
     remove_worktree
     ;;
   branch)
     workspace=$3 worktree=$4 main=$5
-    wait_for_agent_exit
+    wait_for_agent_exit || exit 1
     remove_worktree
     ;;
   tab)
     tab=$3
-    wait_for_agent_exit
-    herdr tab close "$tab" >/dev/null 2>&1
+    wait_for_agent_exit || exit 1
+    "$terminal" close-tab "$tab"
     ;;
   *)
     echo "unknown mode: $mode" >&2

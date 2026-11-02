@@ -54,18 +54,15 @@ the diagnosis** — `environment`, `release`, `handled`, and for Oban:
 
 ### 1b. Run in a checkout of origin/main
 
-Triage reads the code production runs, not whatever branch this checkout is on. Outside Herdr, carry on here. Inside Herdr (`test "${HERDR_ENV:-}" = 1`), run `git fetch origin main` and stay inline when any of these hold: `git rev-parse HEAD` equals `origin/main`, the user asked to triage here, or the input is a paste with no issue ID. Otherwise hand off. `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir`, `<id>` is the issue ID lowercased (`super_api-backend-34y`), and every herdr call and the watcher run outside the sandbox:
+Triage reads the code production runs, not whatever branch this checkout is on. Outside herdr and Rex, carry on here. Inside herdr or Rex (`~/.agents/bin/terminal.sh backend` prints `herdr` or `rex`, not `none`), run `git fetch origin main` and stay inline when any of these hold: `git rev-parse HEAD` equals `origin/main`, the user asked to triage here, or the input is a paste with no issue ID. Otherwise hand off. `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir`, `<id>` is the issue ID lowercased (`super_api-backend-34y`), and every `terminal.sh` call runs outside the sandbox:
 
 ```bash
 sha=$(git rev-parse origin/main)
 git worktree add --detach <main>/../<main-dirname>-triage-<id> $sha
-herdr worktree open --cwd <main> --path <that path> --label triage-<id> --no-focus
-herdr agent start triage-<id> --kind <claude|codex|pi> --pane <.result.root_pane.pane_id>
-herdr agent prompt triage-<id> "/sentry-triage <issue ID or URL>"
-nohup ~/.agents/skills/pr-review/scripts/watch_pr_session.sh review <pane-id> <.result.workspace.workspace_id> <that path> <main> $sha >/dev/null 2>&1 & disown
+~/.agents/bin/terminal.sh hand-off review <that path> triage-<id> <claude|codex|pi> "/sentry-triage <issue ID or URL>" $sha
 ```
 
-Pass any user instruction on in the prompt. Tell the user the workspace and agent name, and that exiting the session removes the worktree and closes the workspace, unless it holds uncommitted changes or HEAD has moved off `$sha`. Then stop. Completion criterion: the agent shows as `working` and `pgrep -f watch_pr_session` finds the watcher.
+Pass any user instruction on in the prompt. Tell the user the workspace and agent name, and that exiting the session removes the worktree and closes the workspace, unless it holds uncommitted changes or HEAD has moved off `$sha`. Then stop. Completion criterion: `~/.agents/bin/terminal.sh pane-state <agent-pane>` exits 0 and `pgrep -f watch_pr_session` finds the watcher. `hand-off` prints `<workspace-or-tab>\t<agent-pane>`, and `<agent-pane>` is the second field.
 
 ### 2. Locate the code
 

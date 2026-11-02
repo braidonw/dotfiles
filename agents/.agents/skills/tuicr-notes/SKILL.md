@@ -11,7 +11,7 @@ tuicr is the terminal review tool the user reads diffs in. This skill holds the 
 
 ## Find the session
 
-Run the script from the repo, outside the sandbox. herdr and tuicr's session store live on the host, so inside the sandbox the script sees neither.
+Run the script from the repo, outside the sandbox. herdr, Rex and tuicr's session store live on the host, so inside the sandbox the script sees none of them.
 
 - `~/.agents/skills/tuicr-notes/scripts/tuicr_session.sh <fixed-point>` finds or opens a local session. It shows the working tree, untracked files included, diffed against the fixed point's merge-base. tuicr re-reads it every second, so fixes show up as they land.
 - `~/.agents/skills/tuicr-notes/scripts/tuicr_session.sh --pr <number>` finds or opens the PR session. tuicr fetches the PR from GitHub first, so this can take up to a minute.
@@ -20,7 +20,7 @@ Handle the exit code:
 
 - **0**: the last line is `TUICR_SESSION: <slug>`. Pass that slug as `--session`, and `--repo <repo-root>`, to every later `tuicr review` command.
 - **5**: several local sessions are active on the repo. Ask the user which window to keep and to quit the others, then run the script again.
-- **6**: no session is open and you are outside herdr. Give the user the command after `TUICR_OPEN_MANUALLY:`, wait for them to say it is open, then run the script again.
+- **6**: no session is open and you are outside herdr and Rex. Give the user the command after `TUICR_OPEN_MANUALLY:`, wait for them to say it is open, then run the script again.
 - **7**: the active local session shows a different diff, named after `TUICR_MISMATCH:`. Ask the user to quit that tuicr window, then run the script again. Leave its pane alone, because the window holds deletes it has not saved yet.
 - **anything else**: say in one line that tuicr failed, with the error. The chat report carries the findings alone.
 

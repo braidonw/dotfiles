@@ -2,7 +2,7 @@
 name: pr-review
 description: >-
   Produce a fresh review of SOMEONE ELSE'S GitHub pull request: check the PR out
-  (inside Herdr, into a throwaway review worktree with its own workspace and a new
+  (inside herdr or Rex, into a throwaway review worktree with its own workspace and a new
   agent session; otherwise into the current worktree), run the code-review skill
   against it, and report the findings. The PR gets reviewed on every code-review
   axis at once, UI included when it touches pages. Use
@@ -83,29 +83,22 @@ Read the PR's head commit first: `gh pr view <number> --json headRefOid,url`.
 
 **Already at the head** (`git rev-parse HEAD` equals `headRefOid`): this is a review worktree, so skip to step 4 below and review in place.
 
-**Inside Herdr** (`test "${HERDR_ENV:-}" = 1`), unless the user asked to review in the current worktree: hand the review to a throwaway worktree and a fresh session, then stop. The current checkout stays untouched.
+**Inside herdr or Rex** (`~/.agents/bin/terminal.sh backend` prints `herdr` or `rex`, not `none`), unless the user asked to review in the current worktree: hand the review to a throwaway worktree and a fresh session, then stop. The current checkout stays untouched.
 
 1. From the repo, with `<main>` the parent of `git rev-parse --path-format=absolute --git-common-dir`:
    ```bash
    git fetch origin pull/<number>/head
    git worktree add --detach <main>/../<main-dirname>-review-pr-<number> <headRefOid>
-   herdr worktree open --cwd <main> --path <that path> --label review-pr-<number> --no-focus
    ```
-   Read the root pane id from `.result.root_pane.pane_id`.
-2. Start a fresh agent of your own harness's kind there, and hand it the PR:
+2. Hand the worktree to a fresh agent of your own harness's kind. Run it outside the sandbox, like every `terminal.sh` call:
    ```bash
-   herdr agent start pr-<number> --kind <claude|codex|pi> --pane <pane-id>
-   herdr agent prompt pr-<number> "/pr-review <url>"
+   ~/.agents/bin/terminal.sh hand-off review <that path> review-pr-<number> <claude|codex|pi> "/pr-review <url>" <headRefOid>
    ```
-   Pass on any user instruction for the review (skip Codex, focus areas, the `new_activity` note) in the same prompt.
-3. Start the cleanup watcher, detached so it outlives this session. Run it outside the sandbox, like every herdr call:
-   ```bash
-   nohup <skill-dir>/scripts/watch_pr_session.sh review <pane-id> <workspace-id> <that path> <main> <headRefOid> >/dev/null 2>&1 & disown
-   ```
-   `<workspace-id>` is `.result.workspace.workspace_id` from the `worktree open` result. When the review agent exits or its pane closes, the watcher stops any worktree preview and deletes its volumes, removes the worktree, then closes the workspace. It keeps everything, and raises a Herdr notification, when the worktree has uncommitted changes or its HEAD has moved off `headRefOid`.
+   It opens the path as a workspace (a Rex session in Rex), starts the agent with the prompt, starts the cleanup watcher detached so it outlives this session, and prints `<workspace-or-tab>\t<agent-pane>`. Pass on any user instruction for the review (skip Codex, focus areas, the `new_activity` note) in the same prompt.
+3. When the review agent exits or its pane closes, the watcher stops any worktree preview and deletes its volumes, removes the worktree, then closes the workspace. It keeps everything, and raises a notification, when the worktree has uncommitted changes or its HEAD has moved off `headRefOid`.
 4. Tell the user the workspace label and agent name, and that exiting the review session cleans up both, unless they leave changes or commits in the worktree.
 
-Completion criterion: the agent shows as `working` and `pgrep -f watch_pr_session` finds the watcher. Steps 3 to 6 run in that session.
+Completion criterion: `~/.agents/bin/terminal.sh pane-state <agent-pane>` exits 0 and `pgrep -f watch_pr_session` finds the watcher. `hand-off` prints `<workspace-or-tab>\t<agent-pane>`, and `<agent-pane>` is the second field. Steps 3 to 6 run in that session.
 
 **Otherwise**, the user wants the PR in the current worktree, which means switching branches.
 Do not clobber uncommitted work:

@@ -4,7 +4,7 @@ set -euo pipefail
 # Finds or opens the tuicr session that review comments go into.
 # Usage: tuicr_session.sh <fixed-point>  the working tree diffed against its merge-base with a fixed point
 #        tuicr_session.sh --pr <number>  the PR session for that pull request
-# Run from inside the repo. Reuses the matching active session, or opens tuicr in a herdr split
+# Run from inside the repo. Reuses the matching active session, or opens tuicr in a herdr or Rex split
 # beside the caller, first closing any pane in the caller's tab labelled tuicr whose tuicr has exited.
 #
 # Exit codes:
@@ -12,7 +12,7 @@ set -euo pipefail
 #   1  genuine failure
 #   2  bad arguments
 #   5  several local sessions active on this repo; stderr lists them
-#   6  no session and not inside herdr; stderr carries "TUICR_OPEN_MANUALLY: <command>"
+#   6  no session and not inside herdr or Rex; stderr carries "TUICR_OPEN_MANUALLY: <command>"
 #   7  the active local session shows a different diff; stderr carries "TUICR_MISMATCH: <slug>"
 
 usage() {
@@ -102,27 +102,25 @@ if [[ -n $found ]]; then
   exit 0
 fi
 
-if [[ ${HERDR_ENV:-} != 1 ]]; then
+terminal=$(cd "$(dirname "$0")/../../../bin" && pwd)/terminal.sh
+
+if [[ $("$terminal" backend) == none ]]; then
   echo "TUICR_OPEN_MANUALLY: cd $root && $command" >&2
   exit 6
 fi
 
-read -r self tab < <(herdr pane current | jq -r '.result.pane | "\(.pane_id) \(.tab_id)"')
-
 # A pane labelled tuicr falls back to a shell once tuicr exits
-herdr pane list | jq -r --arg tab "$tab" --arg self "$self" \
-  '.result.panes[] | select(.tab_id == $tab and .pane_id != $self and .label == "tuicr") | .pane_id' |
+"$terminal" labelled-panes tuicr |
   while read -r other; do
-    # Close only when inspection succeeds and finds no tuicr, never on a failed lookup
-    info=$(herdr pane process-info --pane "$other") || continue
-    if jq -e 'any(.result.process_info.foreground_processes[]; .name == "tuicr") | not' >/dev/null <<<"$info"; then
-      herdr pane close "$other" >/dev/null
+    # Close only when inspection succeeds and finds tuicr gone, never on a failed lookup
+    state=0
+    "$terminal" pane-state "$other" || state=$?
+    if [[ $state -eq 1 ]]; then
+      "$terminal" close-pane "$other"
     fi
   done
 
-pane=$(herdr pane split --current --direction right --cwd "$root" --no-focus | jq -r '.result.pane.pane_id')
-herdr pane rename "$pane" tuicr >/dev/null
-herdr pane run "$pane" "bash -c '$command'" >/dev/null
+pane=$("$terminal" split-beside tuicr "$root" -- bash -c "$command")
 
 for _ in $(seq 1 $((poll_s * 2))); do
   found=$(find_session)
@@ -133,5 +131,5 @@ for _ in $(seq 1 $((poll_s * 2))); do
   sleep 0.5
 done
 
-echo "Started tuicr in herdr pane $pane, but no session registered within ${poll_s}s" >&2
+echo "Started tuicr in pane $pane, but no session registered within ${poll_s}s" >&2
 exit 1

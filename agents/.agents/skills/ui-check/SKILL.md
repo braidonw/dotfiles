@@ -8,7 +8,7 @@ Look at changed UI in a real browser against the local app. Two modes:
 - **Review mode** captures, explores and reports findings. `code-review`'s UI axis runs this mode, and so does a user asking to click through changed pages.
 - **Capture mode** captures only and reports the screenshot list. `pr-description` runs this mode, and so does a user asking for screenshots.
 
-Every `herdr`, `docker` and `playwright-cli` call runs outside the sandbox.
+Every `ui_server.sh`, `docker` and `playwright-cli` call runs outside the sandbox.
 
 ## 1. Read the repo notes
 
