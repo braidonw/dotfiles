@@ -6,6 +6,8 @@
 #                                                      starts an agent in a new workspace or tab and a detached
 #                                                      cleanup watcher; prints "<workspace-or-tab>\t<agent-pane>"
 #   split-beside <label> <dir> [--keep-open] -- <cmd...>   splits right of the caller; prints the pane id
+#   tab-beside <label> <dir> -- <cmd...>               opens an unfocused tab in the caller's workspace that closes
+#                                                      when the command exits; prints the pane id
 #   labelled-panes <label>                             panes in the caller's tab with that label, minus the caller
 #   pane-state <pane>                                  exit 0 running, 1 exited, 2 lookup failed
 #   pane-tail <pane> <lines>
@@ -173,6 +175,31 @@ split_beside() {
   esac
 }
 
+tab_beside() {
+  [[ $# -ge 4 && $3 == -- ]] || usage
+  local label=$1 dir=$2 ws out pane cmd
+  shift 3
+  resolve_backend
+
+  case $backend in
+    herdr)
+      ws=$(herdr pane current | jq -r '.result.pane.workspace_id') || exit 1
+      out=$(herdr tab create --workspace "$ws" --cwd "$dir" --label "$label") || exit 1
+      pane=$(jq -r '.result.root_pane.pane_id' <<<"$out")
+      cmd=$(printf '%q ' "$@")
+      # exit closes the tab once the command ends, rather than leaving a shell behind
+      herdr pane run "$pane" "${cmd% }; exit" >/dev/null || {
+        herdr tab close "$(jq -r '.result.tab.tab_id' <<<"$out")" >/dev/null 2>&1
+        exit 1
+      }
+      echo "$pane"
+      ;;
+    rex)
+      rx window new -s "$REX_SESSION" "$label" -c "$dir" --focus=false --json -- "$@" | jq -er '.block_ids[0]'
+      ;;
+  esac
+}
+
 labelled_panes() {
   [[ $# -eq 1 ]] || usage
   local self tab
@@ -320,6 +347,7 @@ case $sub in
   backend) detect_backend ;;
   hand-off) hand_off "$@" ;;
   split-beside) split_beside "$@" ;;
+  tab-beside) tab_beside "$@" ;;
   labelled-panes) labelled_panes "$@" ;;
   pane-state) pane_state "$@" ;;
   pane-tail) pane_tail "$@" ;;

@@ -4,8 +4,8 @@ set -euo pipefail
 # Finds or opens the tuicr session that review comments go into.
 # Usage: tuicr_session.sh <fixed-point>  the working tree diffed against its merge-base with a fixed point
 #        tuicr_session.sh --pr <number>  the PR session for that pull request
-# Run from inside the repo. Reuses the matching active session, or opens tuicr in a herdr or Rex split
-# beside the caller, first closing any pane in the caller's tab labelled tuicr whose tuicr has exited.
+# Run from inside the repo. Reuses the matching active session, or opens tuicr in a new herdr or Rex tab
+# in the caller's workspace, which closes when tuicr exits.
 #
 # Exit codes:
 #   0  session ready; last line is "TUICR_SESSION: <slug>"
@@ -109,18 +109,7 @@ if [[ $("$terminal" backend) == none ]]; then
   exit 6
 fi
 
-# A pane labelled tuicr falls back to a shell once tuicr exits
-"$terminal" labelled-panes tuicr |
-  while read -r other; do
-    # Close only when inspection succeeds and finds tuicr gone, never on a failed lookup
-    state=0
-    "$terminal" pane-state "$other" || state=$?
-    if [[ $state -eq 1 ]]; then
-      "$terminal" close-pane "$other"
-    fi
-  done
-
-pane=$("$terminal" split-beside tuicr "$root" -- bash -c "$command")
+pane=$("$terminal" tab-beside tuicr "$root" -- bash -c "$command")
 
 for _ in $(seq 1 $((poll_s * 2))); do
   found=$(find_session)
