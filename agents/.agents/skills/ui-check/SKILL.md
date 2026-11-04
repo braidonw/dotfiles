@@ -55,33 +55,53 @@ Use the origin the notes give for this checkout kind for every page. Follow link
 
 ## 4. Capture
 
-The browser is `playwright-cli`, run as `npx -y @playwright/cli@0.1.22`. Run it with `--help` once and read the file its `Agent skill:` line names, a path relative to the directory you ran it in. That file is the command reference. The rules it cannot know:
+Choose the browser per shot. Claude in Chrome is the first choice, and `playwright-cli` takes the shots it cannot.
 
-- **Folder.** The folder is `~/Pictures/ui-check/<run name>/`. Empty it at the start of a run with `find <folder> -mindepth 1 -delete`. `cd` there before every `playwright-cli` call, since the tool writes its `.playwright-cli/` output into the working directory.
+Claude in Chrome takes the shot when all of these hold:
+
+- Its tools respond and the extension can reach the origin. Two failed calls or a site permission prompt means it cannot.
+- The tab's `innerWidth` equals the notes' viewport width after `resize_window`. Read it with `javascript_tool`, because `resize_window` reports success even when the size did not change.
+- The page's `scrollHeight` fits inside `innerHeight`, because its screenshots cover the viewport only.
+
+Rules for both browsers:
+
+- **Folder.** The folder is `~/Pictures/ui-check/<run name>/`. Empty it at the start of a run with `find <folder> -mindepth 1 -delete`.
+- **Ready.** Before each screenshot, poll the notes' ready check for the page once a second until it returns `true`, for up to 30 seconds. A page that never becomes ready is a finding. With no ready check in the notes, take the screenshot once navigation returns.
+- **File names.** Use short kebab-case page names, as `<page>-<viewport>.<ext>`. Keep the extension the browser wrote.
+
+Rules for Claude in Chrome:
+
+- **Tabs.** Open a new tab for the run with `tabs_create_mcp`. This is the user's real Chrome profile, so leave their other tabs alone.
+- **Ready.** Run the ready check with `javascript_tool`.
+- **Screenshot.** Call `computer` with `action: screenshot` and `save_to_disk: true`, then `mv` the returned path into the folder.
+
+Rules for `playwright-cli`, run as `npx -y @playwright/cli@0.1.22`. Run it with `--help` once and read the file its `Agent skill:` line names, a path relative to the directory you ran it in. That file is the command reference. The rules it cannot know:
+
+- **Working directory.** `cd` to the folder before every call, since the tool writes its `.playwright-cli/` output into the working directory.
 - **Session.** Pass `-s=ui-check-<run name>` on every call.
 - **Order.** `open` the first URL before any `resize` or `goto`.
-- **Ready.** Before each screenshot, poll the notes' ready check for the page with `eval` once a second until it returns `true`, for up to 30 seconds. The tool has no wait command. A page that never becomes ready is a finding. With no ready check in the notes, take the screenshot once `goto` returns.
-- **Screenshot.** `screenshot --full-page --filename <absolute folder path>/<file name>`. File names are short kebab-case page names, as `<page>-<viewport>.png`.
+- **Ready.** Run the ready check with `eval`. The tool has no wait command.
+- **Screenshot.** `screenshot --full-page --filename <absolute folder path>/<file name>`.
 
-Log in per the notes before the first page that needs it. For each page, and each viewport the notes give its app, `resize`, `goto`, wait until ready, and screenshot. A page that shows an error the notes list as a skip reason ends the run with `Skipped: <reason>` and the notes' fix.
+Log in per the notes before the first page that needs it, in each browser the run uses. For each page, and each viewport the notes give its app, set the viewport, open the page, wait until ready, and screenshot. A page that shows an error the notes list as a skip reason ends the run with `Skipped: <reason>` and the notes' fix.
 
 Completion criterion: every page has a full-page screenshot at every viewport its app takes, or a named reason it could not be reached.
 
 ## 5. Explore
 
-Review mode only. Spend about ten interactions per page.
+Review mode only. Spend about ten interactions per page. Explore each page at each viewport in the browser that took its screenshot.
 
 Check each page at each viewport for these problems:
 
-- horizontal overflow at mobile, shown by a screenshot wider than the viewport or by `eval "document.documentElement.scrollWidth > innerWidth"`
-- console errors and warnings (`console warning`)
-- failed requests (`requests`)
+- horizontal overflow at mobile, shown by a screenshot wider than the viewport or by evaluating `document.documentElement.scrollWidth > innerWidth`
+- console errors and warnings (`read_console_messages`, or `console warning` in `playwright-cli`)
+- failed requests (`read_network_requests`, or `requests` in `playwright-cli`)
 - a disconnect banner or error flash
 - broken images
 - raw error text, or internal data leaking into the page in the forms the notes list
 - text cut off, clipped or overlapping
 
-Then exercise every interactive element the diff added or changed. Click it, submit valid input, submit invalid input, and open and close any modal. Screenshot each notable state as `<page>-<viewport>-<state>.png`.
+Then exercise every interactive element the diff added or changed. Click it, submit valid input, submit invalid input, and open and close any modal. Screenshot each notable state as `<page>-<viewport>-<state>.<ext>`.
 
 Exploring may submit forms and change local dev data. It deletes only records this run created, and it leaves alone anything that reaches beyond the machine, such as real email, partner APIs, payments and external lookups. The notes say which actions in this repo do that.
 
@@ -89,7 +109,7 @@ Completion criterion: every check above is done on every page at every viewport,
 
 ## 6. Report
 
-`close` the browser session first.
+First close every tab this run opened with `tabs_close_mcp`, and `close` any `playwright-cli` session.
 
 **Review mode.** One finding per problem, worst first. Each gives the page URL, the viewport, what is wrong, the screenshot path, and the `file:line` of the template or component that renders the element. Give a `file:line` only after opening the file and confirming the element is there. Otherwise leave it out. Then one line listing every screenshot taken. A clean run says `No UI problems found` above that line.
 
@@ -97,4 +117,4 @@ Completion criterion: every check above is done on every page at every viewport,
 
 Name any page dropped by the five-page cap or left unreached, with the reason. When this run started a server, give its pane id and the notes' stop command, since the server keeps running.
 
-Completion criterion: the browser session is closed, and every page picked in step 2 appears in the report with its screenshots, its findings, or its reason.
+Completion criterion: the run's tabs and browser sessions are closed, and every page picked in step 2 appears in the report with its screenshots, its findings, or its reason.

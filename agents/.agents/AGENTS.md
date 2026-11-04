@@ -59,6 +59,13 @@ After a sub-agent reports success, read its diff before relaying the claim. When
 
 Before doing any non-trivial work or developing a plan, when there are any areas you are unclear about (an ambiguity in the requirements, a choice between designs, a tradeoff), invoke the `grilling` skill and put the questions to me through it, rather than guessing or asking ad hoc. Fold my answers back into the plan before implementation starts. Re-run grilling as often as needed until you have a clear understanding of the requirements.
 
+# Browsers
+
+Use Claude in Chrome (the `--chrome` extension, `mcp__claude-in-chrome__*`) for screenshots and browser interaction. Use another tool only when Claude in Chrome cannot do the job:
+
+- Playwright: the extension is unavailable, or the job needs an isolated profile, an exact viewport or a full-page capture.
+- Chrome DevTools: performance traces, heap snapshots or Lighthouse audits.
+
 # Linear
 
 Prefer the standard Linear MCP tools. Use the Linear CLI when they are unavailable. Read `~/.agents/skills/setup-braidon-skills/linear-access.md` before any Linear operation.
