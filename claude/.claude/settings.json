@@ -3,10 +3,10 @@
     "commit": ""
   },
   "permissions": {
-    "defaultMode": "auto",
     "allow": [
       "Bash(git push --force-with-lease *)"
-    ]
+    ],
+    "defaultMode": "auto"
   },
   "model": "opus[1m]",
   "skillOverrides": {
@@ -89,12 +89,11 @@
     "mode": "hold"
   },
   "skipWorkflowUsageWarning": true,
-  "theme": "dark-daltonized",
+  "theme": "auto",
   "switchModelsOnFlag": false,
   "remoteControlAtStartup": false,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "voiceEnabled": true,
   "autoMode": {
     "environment": [
       "### Org-wide",
@@ -123,5 +122,6 @@
       "**Org-specific CLIs**: None configured",
       "Routine under braidonw/ prefix: scoped to this user's own github.com/braidonw/dotfiles repo and remote only, per the 'just this project' scope answer"
     ]
-  }
+  },
+  "voiceEnabled": true
 }
