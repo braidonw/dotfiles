@@ -1,0 +1,41 @@
+prSections:
+  - title: Mine
+    filters: is:open author:@me repo:supersimplesuper/code
+  - title: Review requested
+    filters: is:open draft:false -author:@me review-requested:@me repo:supersimplesuper/code
+  - title: All open
+    filters: is:open repo:supersimplesuper/code
+    limit: 50
+issuesSections: []
+notificationsSections:
+  - title: Mine
+    filters: reason:author repo:supersimplesuper/code
+  - title: Participating
+    filters: reason:comment reason:mention reason:review-requested reason:assign reason:state-change repo:supersimplesuper/code
+  - title: Watching
+    filters: reason:subscribed repo:supersimplesuper/code
+defaults:
+  view: prs
+  prsLimit: 30
+  refetchIntervalMinutes: 5
+  preview:
+    open: true
+    width: 70
+repoPaths:
+  supersimplesuper/code: ~/Developer/code
+keybindings:
+  universal:
+    - key: tab
+      builtin: nextSection
+    - key: shift+tab
+      builtin: prevSection
+  prs:
+    - key: E
+      name: review PR in a new agent
+      command: bash -c '~/.agents/bin/pr-agent.sh review "$1" "$2" || { echo; read -rp "Failed, press enter to return " _; }' _ "{{.RepoPath}}" "{{.PrNumber}}"
+    - key: F
+      name: act on PR feedback in a new agent
+      command: bash -c '~/.agents/bin/pr-agent.sh feedback "$1" "$2" || { echo; read -rp "Failed, press enter to return " _; }' _ "{{.RepoPath}}" "{{.PrNumber}}"
+    - key: T
+      name: review PR in tuicr
+      command: bash -c 'cd "$1" && tuicr pr "$2" || { echo; read -rp "Failed, press enter to return " _; }' _ "{{.RepoPath}}" "{{.PrNumber}}"

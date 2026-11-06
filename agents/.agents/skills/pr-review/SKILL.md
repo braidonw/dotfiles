@@ -85,20 +85,15 @@ Read the PR's head commit first: `gh pr view <number> --json headRefOid,url`.
 
 **Inside herdr or Rex** (`~/.agents/bin/terminal.sh backend` prints `herdr` or `rex`, not `none`), unless the user asked to review in the current worktree: hand the review to a throwaway worktree and a fresh session, then stop. The current checkout stays untouched.
 
-1. From the repo, with `<main>` the parent of `git rev-parse --path-format=absolute --git-common-dir`:
+1. Run the hand-off outside the sandbox. `<repo-dir>` is `.` (any checkout of the repo works), `<number>` is the PR number (take it from the URL when given one), `<claude|codex|pi>` is your own harness's kind, and `--note` carries any user instruction for the review (skip Codex, focus areas, the `new_activity` note). Leave `--note` out when there is none.
    ```bash
-   git fetch origin pull/<number>/head
-   git worktree add --detach <main>/../<main-dirname>-review-pr-<number> <headRefOid>
+   ~/.agents/bin/pr-agent.sh review <repo-dir> <number> --kind <claude|codex|pi> --note "<instruction>"
    ```
-2. Hand the worktree to a fresh agent of your own harness's kind. Run it outside the sandbox, like every `terminal.sh` call:
-   ```bash
-   ~/.agents/bin/terminal.sh hand-off review <that path> review-pr-<number> <claude|codex|pi> "/pr-review <url>" <headRefOid>
-   ```
-   It opens the path as a workspace (a Rex session in Rex), starts the agent with the prompt, starts the cleanup watcher detached so it outlives this session, and prints `<workspace-or-tab>\t<agent-pane>`. Pass on any user instruction for the review (skip Codex, focus areas, the `new_activity` note) in the same prompt.
+2. The script fetches the PR head into a new detached worktree named `<checkout>-review-pr-<number>` beside the main checkout. It opens that path as a workspace (a Rex session in Rex), starts the agent on `/pr-review <url>` with the note appended, starts the cleanup watcher detached so it outlives this session, and prints `<workspace-or-tab>\t<agent-pane>`. On a non-zero exit, stop and relay its stderr to the user. An existing worktree at that path, from an open or kept review, is one cause.
 3. When the review agent exits or its pane closes, the watcher stops any worktree preview and deletes its volumes, removes the worktree, then closes the workspace. It keeps everything, and raises a notification, when the worktree has uncommitted changes or its HEAD has moved off `headRefOid`.
 4. Tell the user the workspace label and agent name, and that exiting the review session cleans up both, unless they leave changes or commits in the worktree.
 
-Completion criterion: `~/.agents/bin/terminal.sh pane-state <agent-pane>` exits 0 and `pgrep -f watch_pr_session` finds the watcher. `hand-off` prints `<workspace-or-tab>\t<agent-pane>`, and `<agent-pane>` is the second field. Steps 3 to 6 run in that session.
+Completion criterion: `~/.agents/bin/terminal.sh pane-state <agent-pane>` exits 0 and `pgrep -f watch_pr_session` finds the watcher. `<agent-pane>` is the second field of the script's output. Steps 3 to 6 run in that session.
 
 **Otherwise**, the user wants the PR in the current worktree, which means switching branches.
 Do not clobber uncommitted work:

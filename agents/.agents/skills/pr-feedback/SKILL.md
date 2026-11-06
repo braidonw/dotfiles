@@ -49,24 +49,19 @@ a number/URL rather than guessing — don't fall back to a different branch's PR
 
 ### 1b. Run in a checkout of the PR branch
 
-Comments must be judged against the PR's code, so outside herdr and Rex, or when the PR came from the current branch, carry on here. Otherwise read `gh pr view <number> --json url,headRefName,headRefOid`. Inside herdr or Rex (`~/.agents/bin/terminal.sh backend` prints `herdr` or `rex`, not `none`), take the first case that matches. `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir`, `<claude|codex|pi>` is the kind of your own harness, and every `terminal.sh` call runs outside the sandbox.
+Comments must be judged against the PR's code, so outside herdr and Rex, or when the PR came from the current branch, carry on here. Otherwise read `gh pr view <number> --json url,headRefName,headRefOid`. Inside herdr or Rex (`~/.agents/bin/terminal.sh backend` prints `herdr` or `rex`, not `none`), take the first case that matches. `<claude|codex|pi>` is the kind of your own harness, and every `pr-agent.sh` and `terminal.sh` call runs outside the sandbox.
 
 1. **Inline.** The current branch is `headRefName`, or `git rev-parse HEAD` equals `headRefOid`. Carry on with Step 2 here.
-2. **Checked out in another worktree.** `git worktree list --porcelain` shows `branch refs/heads/<headRefName>` at some `<path>`. Open a tab for it, which also starts the watcher:
-   ```bash
-   ~/.agents/bin/terminal.sh hand-off tab <path> feedback-pr-<number> <claude|codex|pi> "/pr-feedback <url>"
-   ```
-   The watcher closes only that tab when the agent exits. The worktree is the user's and stays.
-3. **Anywhere else.** Make a temp worktree with the branch checked out:
-   ```bash
-   git fetch origin <headRefName>
-   git worktree add <main>/../<main-dirname>-feedback-pr-<number> <headRefName>   # local branch exists
-   git worktree add --track -b <headRefName> <main>/../<main-dirname>-feedback-pr-<number> origin/<headRefName>   # it does not
-   ~/.agents/bin/terminal.sh hand-off branch <that path> feedback-pr-<number> <claude|codex|pi> "/pr-feedback <url>"
-   ```
-   When the agent exits, the watcher stops any worktree preview and deletes its volumes, removes the worktree, then closes the workspace. It keeps everything, and raises a notification, when there are uncommitted changes or unpushed commits.
+2. **Checked out in another worktree.** `git worktree list --porcelain` shows `branch refs/heads/<headRefName>` at some path. Hand off to a tab in that worktree. The watcher closes only that tab when the agent exits. The worktree is the user's and stays.
+3. **Anywhere else.** Hand off to a temp worktree on the branch. When the agent exits, the watcher stops any worktree preview and deletes its volumes, removes the worktree, then closes the workspace. It keeps everything, and raises a notification, when there are uncommitted changes or unpushed commits.
 
-In cases 2 and 3, pass any user instruction on in the prompt, tell the user the workspace and agent name and what exiting the session cleans up, then stop. Completion criterion: `~/.agents/bin/terminal.sh pane-state <agent-pane>` exits 0 and `pgrep -f watch_pr_session` finds the watcher. `hand-off` prints `<workspace-or-tab>\t<agent-pane>`, and `<agent-pane>` is the second field.
+Cases 2 and 3 are one command, which picks between them itself. Run it outside the sandbox. `<repo-dir>` is `.` (any checkout of the repo works), `<number>` is the PR number (take it from the URL when given one), and `--note` carries any user instruction for the feedback pass, and leave `--note` out when there is none.
+
+```bash
+~/.agents/bin/pr-agent.sh feedback <repo-dir> <number> --kind <claude|codex|pi> --note "<instruction>"
+```
+
+The script starts the agent on `/pr-feedback <url>` with the note appended, starts the cleanup watcher, and prints `<workspace-or-tab>\t<agent-pane>`. On a non-zero exit, stop and relay its stderr to the user. Tell the user the workspace and agent name and what exiting the session cleans up, then stop. Completion criterion: `~/.agents/bin/terminal.sh pane-state <agent-pane>` exits 0 and `pgrep -f watch_pr_session` finds the watcher. `<agent-pane>` is the second field of the output.
 
 ### 2. Fetch the feedback
 
