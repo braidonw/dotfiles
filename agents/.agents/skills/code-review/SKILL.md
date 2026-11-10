@@ -96,7 +96,7 @@ List the file extensions in the diff and map each to a language (`.ex`/`.exs` is
 
 ### 6. Spawn all sub-agents in parallel
 
-In Claude Code, spawn the Spec and Simplification sub-agents with `model: "fable"`, since those axes rest on judgement rather than rule-matching. Spawn every other axis sub-agent with `model: "sonnet"`. The aggregating session keeps its own model for the final judgement.
+In Claude Code, spawn the Spec and Simplification sub-agents with `model: "fable"`, since those axes rest on judgement rather than rule-matching. Spawn every other axis sub-agent with `model: "sonnet"`. The aggregating session keeps its own model for the final judgement. End every axis sub-agent prompt with "Do not call the advisor."
 
 **Standards sub-agent prompt** should include:
 

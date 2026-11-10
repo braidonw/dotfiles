@@ -26,6 +26,10 @@ Claude Code only. Fable is the advisor (`advisorModel`) and reads the whole conv
 - **Same error twice**: when a check fails with the same error after a fix attempt, consult it before the next attempt.
 - **Before done**: for work delegated to `implement`, consult it after triaging the review and before reporting done. Ask what the original request needed that the work missed.
 
+Call it at these checkpoints only. This overrides the advisor tool's own guidance to call it before starting and before finishing every task. Each call resends the whole conversation uncached, so it is expensive.
+
+Only the main session calls it. Sub-agents never do, with one exception: `implement` may call it on the same-error checkpoint. If you are a sub-agent, leave the advisor uncalled.
+
 The checkpoints cover planned and delegated work. Trivial edits, `chore` work and questions skip them. When the advice changes the approach or finds a gap, say so in one line, including any advice you rejected and why.
 
 # Pragmatism
