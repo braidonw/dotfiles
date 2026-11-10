@@ -1,17 +1,18 @@
 # Model delegation workflow
 
-The main session runs on the strongest model available and should spend its effort on planning, evaluating tradeoffs, reviewing results, and making final decisions. Delegate execution to the four sub-agent roles instead of doing it inline. Claude Code defines all four in `~/.claude/agents/*.md`. Codex is used for reviews only, so the Codex CLI defines just `review` in `~/.codex/agents/review.toml`. In a harness that lacks a role (Pi, or the Codex CLI for anything but `review`), do that work inline.
+The main session runs on the strongest model available and should spend its effort on planning, evaluating tradeoffs, reviewing results, and making final decisions. Delegate execution to the five sub-agent roles instead of doing it inline. Claude Code defines all five in `~/.claude/agents/*.md`. Codex is used for reviews only, so the Codex CLI defines just `review` in `~/.codex/agents/review.toml`. In a harness that lacks a role (Pi, or the Codex CLI for anything but `review`), do that work inline.
 
 - **`chore`** (Sonnet 5.5, low effort). Mechanical, fully-specified work: renames, repetitive multi-site edits, fixture updates, formatting.
 - **`implement`** (Opus 5.5, high effort). Implementation of an agreed plan: write the code and tests, run them, report back. This is the default for all coding work.
-- **`write`** (Fable 5.1, high effort). Drafts prose for others to read: PR descriptions, Linear issue bodies, docs and handovers. Returns the text and publishes nothing.
+- **`write`** (Fable 5.2, high effort). Drafts prose for humans to read: PR descriptions, handovers and docs. Returns the text and publishes nothing.
+- **`brief`** (Opus 5.5, high effort). Drafts text for agents to act on: Linear issue bodies, specs, tickets and triage briefs. Returns the text and publishes nothing.
 - **`review`** (strongest setting, high effort). Fresh-context reviewer. Runs the `code-review` skill against a fixed point, or the `plan-review` skill against a plan, and reports back. Read-only.
 
 Rules of thumb:
 - Plan first in the main session (use the harness's plan mode where it has one), then hand the agreed plan to the right agent with enough context to execute without guessing: relevant file paths, decisions already made, and how to verify.
 - Before delegating a plan that touches 8 or more files, or adds a new module, table, worker, pipeline or external integration, spawn a `review` agent to run the `plan-review` skill on it. Fold the triaged findings back into the plan before implementation starts.
 - Do trivial edits (a one-file tweak, a quick fix mid-conversation) directly in the main session. Delegation overhead isn't worth it there.
-- In the main session, delegate PR descriptions, Linear issue bodies, docs and handovers to `write`, including the drafting steps inside `to-spec`, `to-tickets`, `triage` and `stacked-delivery`. Pass it the template and the facts. Check its draft, then do the file write or Linear call yourself.
+- In the main session, delegate PR descriptions, handovers and docs to `write`, including the drafting step inside `stacked-delivery`. Delegate Linear issue bodies to `brief`, including the drafting steps inside `to-spec`, `to-tickets` and `triage`. Pass the agent the template and the facts. Check its draft, then do the file write or Linear call yourself.
 - Before delegating to `implement`, record the fixed point with `git rev-parse HEAD`. When the agent reports back, spawn a `review` agent in a new session with that fixed point and the plan or spec location. Never run the review inside the implementer's context or inline in the main session. `chore` work skips this.
 - Triage every review in the main session with the `receiving-code-review` skill: fix real findings (directly if trivial, otherwise re-delegate), dismiss the rest with a one-line reason, and include the outcome in the report to me.
 - Review the agent's report and diff in the main session before declaring work done; final judgement stays with the main session. If an agent reports a plan conflict, resolve it in the main session and re-delegate.
